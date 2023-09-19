@@ -1,4 +1,5 @@
 CC=gcc
+CPP=g++
 
 client: client.c
 	$(CC) $< -o $@
