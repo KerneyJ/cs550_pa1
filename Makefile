@@ -1,8 +1,9 @@
 CC=gcc
 CPP=g++
 
-client: client.c
-	$(CC) $< -o $@
+SRCS=comms.c
+OBJS=$(SRCS:.c=.o)
 
-server: server.c
-	$(CC) $< -o $@
+$(OBJS): $(SRCS)
+	$(CC) -c $< -o $@
+
