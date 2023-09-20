@@ -6,11 +6,12 @@
 #define SIZE 1024
  
 void send_file(FILE *fp, int sockfd) {
-    int n;
+    unsigned long n;
     char data[SIZE] = {0};
     
-    while(fgets(data, SIZE, fp) != NULL) {
-        if (send(sockfd, data, sizeof(data), 0) == -1) {
+    while(!feof(fp)) {
+        n = fread(data, 1, 1000, fp);
+        if (send(sockfd, data, n, 0) == -1) {
             perror("[-]Error in sending file.");
             exit(1);
         }
@@ -46,7 +47,7 @@ int main() {
     }
     printf("[+]Connected to Server.\n");
     
-    fp = fopen(filename, "r");
+    fp = fopen(filename, "rb");
     if (fp == NULL) {
         perror("[-]Error in reading file.");
         exit(1);
