@@ -7,3 +7,5 @@ OBJS=$(SRCS:.c=.o)
 $(OBJS): $(SRCS)
 	$(CC) -c $< -o $@
 
+clean:
+	rm *.o
