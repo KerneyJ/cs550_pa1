@@ -1,13 +1,6 @@
 #include <stdio.h>
 #include "comms.h"
 
-#define MSGT_UPDATE 1
-#define MSGT_FILE 2
-
-#define UPDATE_MSG_SIZE 256
-
-#define SENDSIZE 1024
-
 int servinit_conn(conn_t* conn, char* ip, int port){
 	struct sockaddr_in serv_addr;
 	socklen_t addr_size;
@@ -123,11 +116,9 @@ int send_msg(msg_t msg, conn_t conn){
 	return 0;
 }
 
-int recv_msg(conn_t conn){
-	char recvbuf[SENDSIZE] = {0};
-	size_t size;
-	int type, bytesread = recv(conn.sock, recvbuf, SENDSIZE, 0);
-	type = ((int*)recvbuf)[0];
-	size = ((size_t*)(recvbuf+sizeof(int)))[0];
-	printf("[+]Received message of type %d and size %lu\n", type, size);
+int recv_msg(conn_t conn, char* buf){
+	int bytesread = recv(conn.sock, buf, SENDSIZE, 0);
+	if(bytesread < 0)
+		perror("[-]Error in receiving message");
+	return bytesread;
 }
