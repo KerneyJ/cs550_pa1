@@ -1,6 +1,13 @@
 #include <stdio.h>
 #include "comms.h"
 
+#define MSGT_UPDATE 1
+#define MSGT_FILE 2
+
+#define UPDATE_MSG_SIZE 256
+
+#define SENDSIZE 1024
+
 int servinit_conn(conn_t* conn, char* ip, int port){
 	struct sockaddr_in serv_addr;
 	socklen_t addr_size;
@@ -11,7 +18,7 @@ int servinit_conn(conn_t* conn, char* ip, int port){
 		perror("[-] Error on socket creation");
 		return -1;
 	}
-	printf("[+]Server socket created successfully.\n");
+	printf("[+]Server socket created successfully at %s:%d.\n", ip, port);
 
 	serv_addr.sin_family = AF_INET;
 	serv_addr.sin_port = conn->port;
@@ -77,4 +84,50 @@ int close_conn(conn_t *conn){
 	conn->sock = -1;
 	conn->port = -1;
 	conn->addr = -1;
+}
+
+int createupdt_msg(msg_t* msg, char* update_message, int len){
+	msg->buf = (char*)malloc(UPDATE_MSG_SIZE * sizeof(char));
+	if(msg->buf == NULL){
+		perror("[-]Error mallocing for update message buffer");
+		return -1;
+	}
+	memcpy(msg->buf, update_message, len);
+	msg->size = UPDATE_MSG_SIZE;
+	msg->type = MSGT_UPDATE;
+	return 0;
+}
+
+int send_msg(msg_t msg, conn_t conn){
+	printf("[*]Attempting to send %s\n", msg.buf);
+	size_t bytestosend = msg.size, bufferroom = SENDSIZE;
+	char sendbuf[SENDSIZE] = {0}, *ptr;
+	ptr = sendbuf;
+	memcpy(ptr, (char*)(&msg.type), sizeof(int));
+	ptr += sizeof(int);
+	memcpy(ptr, (char*)(&msg.size), sizeof(size_t));
+	bufferroom -= sizeof(int) + sizeof(size_t);
+	ptr += sizeof(size_t);
+	while(bytestosend){
+		memcpy(ptr, msg.buf, bytestosend - bufferroom);
+		if(send(conn.sock, sendbuf, SENDSIZE, 0) < 0){
+			perror("[-]Error in sending message.");
+			return -1;
+		}
+		printf("[+]Sent message chunk %s\n");
+		bzero(sendbuf, SENDSIZE);
+		ptr = sendbuf;
+		bytestosend -= bufferroom;
+	}
+	printf("[+]Successfully sent entire message\n");
+	return 0;
+}
+
+int recv_msg(conn_t conn){
+	char recvbuf[SENDSIZE] = {0};
+	size_t size;
+	int type, bytesread = recv(conn.sock, recvbuf, SENDSIZE, 0);
+	type = ((int*)recvbuf)[0];
+	size = ((size_t*)(recvbuf+sizeof(int)))[0];
+	printf("[+]Received message of type %d and size %lu\n", type, size);
 }

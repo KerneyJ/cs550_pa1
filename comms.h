@@ -20,5 +20,9 @@ conn_t servacpt_conn(conn_t *);
 int clntinit_conn(conn_t *, char*, int);
 int close_conn(conn_t *);
 
-int send_msg(msg_t); // TODO
-int recv_msg(); // TODO
+int createupdt_msg(msg_t*, char*, int);
+int createfile_msg(msg_t*);
+int delete_msg(msg_t*);
+
+int send_msg(msg_t, conn_t);
+int recv_msg(conn_t);
