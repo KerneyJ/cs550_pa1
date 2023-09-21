@@ -2,16 +2,21 @@ CC=gcc
 CPP=g++
 
 PEER=peer.bin
+IDXSVR=index_server.bin
 SRCS=comms.c
 OBJS=$(SRCS:.c=.o)
 
-all: $(PEER)
+all: $(PEER) $(IDXSVR)
+
+$(IDXSVR): $(OBJS)
+	$(CPP) index_server.cpp $(OBJS) -o $@
 
 $(PEER): $(OBJS)
-	$(CC) peer.c $(OBJS) -o $@
+	$(CPP) peer.cpp $(OBJS) -o $@
 
 $(OBJS): $(SRCS)
 	$(CC) -c $< -o $@
 
 clean:
 	rm *.o
+	rm *.bin

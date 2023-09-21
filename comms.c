@@ -77,4 +77,5 @@ int close_conn(conn_t *conn){
 	conn->sock = -1;
 	conn->port = -1;
 	conn->addr = -1;
+	return 0;
 }
