@@ -12,7 +12,6 @@ extern "C" {
 
 volatile sig_atomic_t stop;
 conn_t server_conn;
-ThreadPool* threads = nullptr;
 
 void set_stop_flag(int signum) {
 	printf("Catching SIGINT!\n");
