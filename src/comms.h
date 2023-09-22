@@ -3,6 +3,8 @@
 #include <string.h>
 #include <arpa/inet.h>
 
+#pragma once
+
 #define MSGT_UPDATE 1
 #define MSGT_FILE 2
 
