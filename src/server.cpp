@@ -31,4 +31,6 @@ void servloop_conn(conn_t* server_conn, void (*message_handler)(conn_t, msg_t), 
         });
 		// std::thread(connection_handler, client_conn, message_handler).detach();
     }
+
+    threadpool.teardown();
 }

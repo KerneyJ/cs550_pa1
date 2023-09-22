@@ -1,4 +1,5 @@
 #include <bits/types/sig_atomic_t.h>
+#include <condition_variable>
 #include <functional>
 #include <unistd.h>
 #include <vector>
@@ -10,7 +11,7 @@ ThreadPool::ThreadPool() {
     int i, num_threads;
 
     interrupt = false;
-    num_threads = 3;//std::thread::hardware_concurrency(); 
+    num_threads = std::thread::hardware_concurrency(); 
 
     printf("Creating %d threads\n", num_threads);
 
@@ -20,16 +21,19 @@ ThreadPool::ThreadPool() {
 }
 
 void ThreadPool::queue_job(std::function<void()> job) {
-    printf("Adding job\n");
+    printf("Adding job to threadpool queue.\n");
+
     queue_lock.lock();
     work_queue.push(job);
     queue_lock.unlock();
+    notify_work.notify_one();
 }
 
 void ThreadPool::teardown() {
-    printf("Tearing down\n");
+    printf("Tearing down threadpool, joining all threads.\n");
 
     interrupt = true;
+    notify_work.notify_all();
     for(std::thread &thread : threads) {
         thread.join();
     }
@@ -41,20 +45,21 @@ void ThreadPool::teardown() {
 void ThreadPool::thread_loop() {
     std::function<void()> job;
 
-    while(!interrupt) {
-        queue_lock.lock();
-        if(work_queue.empty()) {
-            sleep(1);
-            queue_lock.unlock();
-            continue;
+    while(true) {
+        std::unique_lock work_lock(queue_lock);
+        notify_work.wait(work_lock, [this]{ 
+            return !work_queue.empty() || interrupt;
+        });
+
+        if(interrupt) {
+            work_lock.unlock();
+            return;
         }
 
-        printf("I got the job!\n");
         job = work_queue.front();
         work_queue.pop();
-        queue_lock.unlock();
+        work_lock.unlock();
 
-        printf("Starting job!\n");
         job();
     }
 }
