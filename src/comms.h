@@ -12,15 +12,16 @@
 #define UPDATE_MSG_SIZE 256
 #define SENDSIZE 1024
 
-#define IS_FILE_MSG(msg_type) msg_type > 0 
+#define IS_FILE_MSG(msg_type) msg_type > 0
 
 enum msg_type {
-	NEW_USER 		= -1,
-	SEARCH_INDEX    = -2,
-	REQUEST_FILE    = -3,
-	REGISTER_FILE   = -4,
-	REPLICATION_REQ = -5,
-	STATUS_OK 		= -6,
+	NULL_MSG		=  0,
+	NEW_USER		= -1,
+	SEARCH_INDEX	= -2,
+	REQUEST_FILE	= -3,
+	REGISTER_FILE	= -4,
+	REPLICATION_REQ	= -5,
+	STATUS_OK		= -6,
 	STATUS_BAD		= -7,
 };
 
@@ -42,9 +43,9 @@ conn_t servacpt_conn(conn_t *);
 int clntinit_conn(conn_t *, char*, int);
 int close_conn(conn_t *);
 
-int createupdt_msg(msg_t*, char*, int);
+int createupdt_msg(msg_t*, char*, int, int);
 int createfile_msg(msg_t*, char*);
 int delete_msg(msg_t*);
 
 int send_msg(msg_t, conn_t);
-int recv_msg(conn_t, char*);
+msg_t recv_msg(conn_t, char*);
