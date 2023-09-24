@@ -88,11 +88,28 @@ int createupdt_msg(msg_t* msg, char* update_message, int len){
 	}
 	memcpy(msg->buf, update_message, len);
 	msg->size = UPDATE_MSG_SIZE;
-	msg->type = MSGT_UPDATE;
+	msg->type = update;
 	return 0;
 }
 
-int send_msg(msg_t msg, conn_t conn){
+int createfile_msg(msg_t* msg, char* path){
+	int fd;
+	struct stat s;
+
+	fd = open(path, O_RDONLY);
+	fstat(fd, &s);
+	msg->type = fd;
+	msg->size = s.st_size;
+	msg->buf = (char*)mmap(NULL, msg->size, PROT_READ, MAP_SHARED, fd, 0);
+	if(msg->buf == MAP_FAILED){
+		perror("[-]MMAP error while creating file message");
+		return -1;
+	}
+	printf("[+]Successfully created a file message\n");
+	return 0;
+}
+
+int send_msg(msg_t msg, conn_t conn){ // TODO might need to use protobuff for message layout
 	printf("[*]Attempting to send %s\n", msg.buf);
 	size_t bytestosend = msg.size, bufferroom = SENDSIZE;
 	char sendbuf[SENDSIZE] = {0}, *ptr;
@@ -105,7 +122,7 @@ int send_msg(msg_t msg, conn_t conn){
 	while(bytestosend){
 		memcpy(ptr, msg.buf, bytestosend - bufferroom);
 		if(send(conn.sock, sendbuf, SENDSIZE, 0) < 0){
-			perror("[-]Error in sending message.");
+			perror("[-]Error in sending message");
 			return -1;
 		}
 		printf("[+]Sent message chunk %s\n");
@@ -117,6 +134,8 @@ int send_msg(msg_t msg, conn_t conn){
 	return 0;
 }
 
+
+// TODO make return msg_t
 int recv_msg(conn_t conn, char* buf){
 	int bytesread = recv(conn.sock, buf, SENDSIZE, 0);
 	if(bytesread < 0)
