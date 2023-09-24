@@ -7,6 +7,8 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
+#pragma once
+
 #define UPDATE_MSG_SIZE 256
 
 #define SENDSIZE 1024

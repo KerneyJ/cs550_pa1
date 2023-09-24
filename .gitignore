@@ -1,3 +1,2 @@
-./bin/
-*.bin
-*.o
+bin/*
+obj/*

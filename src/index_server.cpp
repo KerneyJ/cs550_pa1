@@ -1,24 +1,27 @@
-#include "stdio.h"
+#include <cstdio>
 #include <sys/socket.h>
-#include <thread>
 #include <signal.h>
+#include <unistd.h>
+#include "server.hpp"
 
 extern "C" {
 	#include "comms.h"
 }
 
+#include "thread_pool.hpp"
+
 volatile sig_atomic_t stop;
 conn_t server_conn;
 
 void set_stop_flag(int signum) {
+	printf("Catching SIGINT!\n");
     stop = 1;
 	close_conn(&server_conn); // exits blocking accept() calls
 }
 
-void handle_connection(conn_t client_conn) {
+void message_handler(conn_t client_conn, msg_t msg) {
 	unsigned char* ip = (unsigned char*) &client_conn.addr;
 	printf("Doing stuff with my new connection: %d.%d.%d.%d:%d\n", ip[0], ip[1], ip[2], ip[3], client_conn.port);
-	close_conn(&client_conn);
 }
 
 int main(int argc, char** argv) {
@@ -27,23 +30,16 @@ int main(int argc, char** argv) {
 
     char *ip = "127.0.0.1";
     int port = 8080;
-    
+
     conn_t client_conn;
 
     servinit_conn(&server_conn, ip, port);
 	servlstn_conn(&server_conn, 5);
     
-    while(!stop) {
-        client_conn = servacpt_conn(&server_conn);
+	servloop_conn(&server_conn, &message_handler, &stop);
 
-		if(client_conn.addr == -1)
-			continue;
-
-		std::thread(handle_connection, client_conn).detach();
-    }
-
-	close_conn(&server_conn);
 	printf("Shutting down!\n");
+	close_conn(&server_conn);
 
 	return 0;
 }

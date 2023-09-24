@@ -1,22 +1,31 @@
 CC=gcc
 CPP=g++
 
-PEER=peer.bin
-IDXSVR=index_server.bin
-SRCS=comms.c
-OBJS=$(SRCS:.c=.o)
+BIN_DIR=bin
+OBJ_DIR=obj
+SRC_DIR=src
+
+PEER=peer.cpp
+IDXSVR=index_server.cpp
+C_SRCS=comms.c 
+CPP_SRCS=server.cpp thread_pool.cpp
+C_OBJS=$(C_SRCS:.c=.o)
+CPP_OBJS=$(CPP_SRCS:.cpp=.o)
 
 all: $(PEER) $(IDXSVR)
 
-$(IDXSVR): $(OBJS)
-	$(CPP) index_server.cpp $(OBJS) -o $@
+$(IDXSVR): $(C_OBJS) $(CPP_OBJS) 
+	$(CPP) $(SRC_DIR)/$(IDXSVR) $(addprefix $(OBJ_DIR)/,$(C_OBJS)) $(addprefix $(OBJ_DIR)/,$(CPP_OBJS)) -o $(BIN_DIR)/index_server
 
-$(PEER): $(OBJS)
-	$(CPP) peer.cpp $(OBJS) -o $@
+$(PEER): $(C_OBJS) $(CPP_OBJS)
+	$(CPP) $(SRC_DIR)/$(PEER) $(addprefix $(OBJ_DIR)/,$(C_OBJS)) $(addprefix $(OBJ_DIR)/,$(CPP_OBJS)) -o $(BIN_DIR)/peer
 
-$(OBJS): $(SRCS)
-	$(CC) -c $< -o $@
+$(CPP_OBJS): %.o: $(SRC_DIR)/%.cpp
+	$(CPP) -c $< -o $(OBJ_DIR)/$@
+
+$(C_OBJS): %.o: $(SRC_DIR)/%.c
+	$(CC) -c $< -o $(OBJ_DIR)/$@
 
 clean:
-	rm *.o
-	rm *.bin
+	rm -f $(BIN_DIR)/*
+	rm -f $(OBJ_DIR)/*
