@@ -10,11 +10,18 @@
 #pragma once
 
 #define UPDATE_MSG_SIZE 256
-
 #define SENDSIZE 1024
 
-enum type{
-	update=-1,
+#define IS_FILE_MSG(msg_type) msg_type > 0 
+
+enum msg_type {
+	NEW_USER 		= -1,
+	SEARCH_INDEX    = -2,
+	REQUEST_FILE    = -3,
+	REGISTER_FILE   = -4,
+	REPLICATION_REQ = -5,
+	STATUS_OK 		= -6,
+	STATUS_BAD		= -7,
 };
 
 typedef struct {
@@ -26,7 +33,7 @@ typedef struct {
 typedef struct {
 	char* buf;
 	size_t size;
-	int type;
+	enum msg_type type;
 } msg_t;
 
 int servinit_conn(conn_t *, char*, int);
