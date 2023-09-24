@@ -65,6 +65,7 @@ int clntinit_conn(conn_t* conn, char* ip, int port){
 	if(connect(conn->sock, (struct sockaddr*)&serv_addr, sizeof(serv_addr)) < 0){
 		char error_string[256];
 		sprintf(error_string,"[-]Error connecting to %s:%d", ip, port);
+		error_string[255] = 0;
 		perror(error_string);
 		return -1;
 	}
@@ -97,6 +98,12 @@ int createfile_msg(msg_t* msg, char* path){
 	struct stat s;
 
 	fd = open(path, O_RDONLY);
+	if(fd < 0){
+		char error_string[256];
+		sprintf(error_string, "[-]Error in createfile_msg open(%s)", path);
+		error_string[255] = 0;
+		perror(error_string);
+	}
 	fstat(fd, &s);
 	msg->type = fd;
 	msg->size = s.st_size;
