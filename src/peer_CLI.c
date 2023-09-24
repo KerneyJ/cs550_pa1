@@ -1,4 +1,8 @@
 #include <stdio.h> 
+#include <peer.hpp>
+
+#define MAX_DIR_NAME_SIZE 1024
+
 
 int launch_CLI() {
     //Welcome
@@ -6,9 +10,9 @@ int launch_CLI() {
     printf("Howdy partner 🤠, ready to pirate some 💿💿💿?");
     printf("\n-------------------------------------------------\n\n");
   
-    
     int is_running = 1;
     int user_input;
+    char local_shared_dir[MAX_DIR_NAME_SIZE];
     while (is_running) {
         //Main menu
         
@@ -27,6 +31,14 @@ int launch_CLI() {
         }
         else if (user_input == 1) {
             printf("\nRegistering new user...\n");
+            printf("Enter the directory where you will be sharing and downloading files: ");
+            printf("Enter a directory name (up to %d characters): ", MAX_DIR_NAME_SIZE - 1);
+            scanf("%99s", local_shared_dir);
+            
+            register_
+
+
+    printf("You entered: %s\n", local_shared_dir);
         }
         else if (user_input == 2) {
             printf("Registering a new file...\n");
