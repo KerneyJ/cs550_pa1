@@ -21,6 +21,7 @@ void servloop_conn(conn_t* server_conn, void (*message_handler)(conn_t, msg_t), 
     ThreadPool threadpool = ThreadPool();
 
     while(!(*interrupt)) {
+        // TODO: error handling
         client_conn = servacpt_conn(server_conn);
 
 		if(client_conn.addr == -1)
