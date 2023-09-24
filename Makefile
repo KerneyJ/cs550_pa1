@@ -7,14 +7,18 @@ SRC_DIR=src
 
 PEER=peer.cpp
 IDXSVR=index_server.cpp
-C_SRCS=comms.c 
+TEST=test.c
+C_SRCS=comms.c
 CPP_SRCS=server.cpp thread_pool.cpp
 C_OBJS=$(C_SRCS:.c=.o)
 CPP_OBJS=$(CPP_SRCS:.cpp=.o)
 
 all: $(PEER) $(IDXSVR)
 
-$(IDXSVR): $(C_OBJS) $(CPP_OBJS) 
+$(TEST): $(C_OBJS)
+	$(CC) $(SRC_DIR)/$(TEST) $(addprefix $(OBJ_DIR)/,$(C_OBJS)) -o $(BIN_DIR)/test
+
+$(IDXSVR): $(C_OBJS) $(CPP_OBJS)
 	$(CPP) $(SRC_DIR)/$(IDXSVR) $(addprefix $(OBJ_DIR)/,$(C_OBJS)) $(addprefix $(OBJ_DIR)/,$(CPP_OBJS)) -o $(BIN_DIR)/index_server
 
 $(PEER): $(C_OBJS) $(CPP_OBJS)
