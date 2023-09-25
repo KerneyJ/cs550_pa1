@@ -107,14 +107,12 @@ char* search_for_file(char* filename) {
 	//TODO
 	//Send a msg_t to index_server with msg_type == -2, and buf==filename.
 	//Then if the file exists, return the ip address of the host who has the file.
-	send_msg_wrapper(index_server_ip, -2, filename);
+	send_msg_wrapper(index_server_ip, SEARCH_INDEX, filename);
 }
 
 //Download a file. Expects filename. Asks index server for ip address of host with file. Then asks host for the file. Returns 0 if successful.
 //This function just wraps the search_for_file and request_file_from_peer functions to make for a simple call from the CLI.
-
 int request_file(char* filename) {
-	//TODO
 	char *file_owner_ip = search_for_file(filename);
 	//If the file exists, request it from the peer host. 
 	if (file_owner_ip) {
