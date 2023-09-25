@@ -43,8 +43,53 @@ conn_t servacpt_conn(conn_t *);
 int clntinit_conn(conn_t *, char*, int);
 int close_conn(conn_t *);
 
+/*
+ *	int create_message(msg_t*, char*, int);
+ *		wrapper for createupdt_msg and createfile_msg
+ *		Arguments
+ *			msg_t* msg: pointer to a single message, pointer to write to
+ *			char* string: could be a path or message string depending on type
+ *			int type: for update message use enum msg_type; for file positive int
+ *		Returns
+ *			the output of the message creation function specified by type
+ */
+int create_message(msg_t*, char*, int);
+
+/*
+ * int createupdt_msg(msg_t*, char*, int, int);
+ *		create a message that is not a file
+ *		Arguments
+ *			msg_t* msg: pointer to a single message, pointer to write to
+ *			char* update_message: extra infomration to go with enum msg_type
+ *			int len: length of char* update_message
+ *			int type: enum msg_typ
+ *		Returns
+ *			-1 on error, perror is called
+ *			0 on success
+ */
 int createupdt_msg(msg_t*, char*, int, int);
+
+/*
+ * int createfile_msg(msg_t*, char*);
+ *		create a message that is not a file
+ *		Arguments
+ *			msg_t* msg: pointer to a single message, pointer to write to
+ *			char* path: path of file to create message out of
+ *		Returns
+ *			-1 on error, perror is called
+ *			0 on success
+ */
 int createfile_msg(msg_t*, char*);
+
+/*
+ * int delete_msg(msg_t*);
+ *		create a message that is not a file
+ *		Arguments
+ *			msg_t* msg: pointer to a single message, pointer to change
+ *		Returns
+ *			-1 on error, perror is called
+ *			0 on success
+ */
 int delete_msg(msg_t*);
 
 int send_msg(msg_t, conn_t);
