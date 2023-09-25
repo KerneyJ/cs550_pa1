@@ -17,6 +17,11 @@ extern "C" {
 
 #define REPLICATION_FACTOR 2
 
+void register_user(conn_t client, msg_t message);
+void register_file(conn_t client, msg_t message);
+void search_index(conn_t client, msg_t message);
+void request_replication(std::string filename);
+
 volatile sig_atomic_t stop;
 conn_t server_conn;
 
@@ -29,6 +34,17 @@ void set_stop_flag(int signum) {
 void message_handler(conn_t client_conn, msg_t msg) {
 	unsigned char* ip = (unsigned char*) &client_conn.addr;
 	printf("Doing stuff with my new connection: %d.%d.%d.%d:%d\n", ip[0], ip[1], ip[2], ip[3], client_conn.port);
+
+	switch (msg.type) {
+		case NEW_USER:
+			return register_user(client_conn, msg);
+		case REGISTER_FILE:
+			return register_file(client_conn, msg);
+		case SEARCH_INDEX:
+			return search_index(client_conn, msg);
+		default:
+			fprintf(stderr, "Unknown message type: %d", msg.type);
+	}
 }
 
 int main(int argc, char** argv) {
@@ -51,11 +67,6 @@ int main(int argc, char** argv) {
 	return 0;
 }
 
-void register_user(conn_t client, msg_t message);
-void register_file(conn_t client, msg_t message);
-void search_index(conn_t client, msg_t message);
-void request_replication(std::string filename);
-
 FileIndex file_index;
 std::vector<conn_t> peers;
 std::queue<std::string> replication_queue;
@@ -72,6 +83,19 @@ void register_file(conn_t client, msg_t message) {
 	if(file_index.count_peers(filename) < REPLICATION_FACTOR) {
 		request_replication(filename);
 	}
+}
+
+void search_index(conn_t client, msg_t message) {
+	msg_t res;
+	std::string filename = message.buf;
+
+	conn_t peer = file_index.get_peer(filename);
+	int peer_data[2] = {peer.addr, peer.port};
+
+	if(createupdt_msg(&res, (char*) peer_data, -1, STATUS_OK) == -1)
+		return;
+
+	send_msg(res, client);
 }
 
 void request_replication(std::string filename) {
