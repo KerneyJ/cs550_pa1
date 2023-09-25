@@ -48,4 +48,8 @@ int createfile_msg(msg_t*, char*);
 int delete_msg(msg_t*);
 
 int send_msg(msg_t, conn_t);
-msg_t recv_msg(conn_t, char*);
+/*
+ * If you receive a file message you must immedieatly rename the file 
+ * that is assocaited with the message
+ */
+msg_t recv_msg(conn_t);
