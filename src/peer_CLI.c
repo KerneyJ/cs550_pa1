@@ -5,6 +5,11 @@
 
 
 int launch_CLI() {
+
+
+    run_peer_server(); 
+
+
     //Welcome
     printf("\n-------------------------------------------------\n");
     printf("Howdy partner 🤠, ready to pirate some 💿💿💿?");

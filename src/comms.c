@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include "comms.h"
 
-
 int servinit_conn(conn_t* conn, char* ip, int port){
 	struct sockaddr_in serv_addr;
 	socklen_t addr_size;
@@ -189,19 +188,53 @@ int send_msg(msg_t msg, conn_t conn){ // TODO might need to use protobuff for me
 	return 0;
 }
 
+
+/*
+ * The goal of this function is to abstract out some of the
+ * error handling code from recv_msg. What is necessary to do
+ * when handling the errors is different based on message type
+ * and when the failure happens. This functions arguments will
+ * also differ depending on when the error happens
+ */
+#define EINITMSG	(1<<0) // Error on receiving INIT MSG
+#define EAOPEN		(1<<1) // Error After OPEN
+#define EAALLOC		(1<<2) // Error After memory ALLOC (could be mmap or malloc, depends on if file or msg)
+#define TFILE		(1<<3) // Type of message is FILE
+#define TUPDT		(1<<4) // Type of message is UPDaTe
+#define TUEMT		(1<<5) // Type of message is Update but the message is EMpTy
+static msg_t recv_handleerror(msg_t in, char* pe, int flags){
+	if(flags == EINITMSG)
+		goto EXIT;
+
+	if(flags & EAOPEN)
+		close(in.type);
+
+	if(flags & EAALLOC){
+		if(flags & TUPDT)
+			free(in.buf);
+		else if(flags & TUEMT)
+			goto EXIT;
+		else if(flags & TFILE){
+			munmap(in.buf, in.size);
+		}
+	}
+
+EXIT:
+	perror(pe);
+	msg_t ret = {NULL, 0, NULL_MSG};
+	return ret;
+}
+
 msg_t recv_msg(conn_t conn){
-	int type, bytesread, bytesleft, fd;
+	int type, bytesread, bytesleft, fd, errint = 0;
 	size_t size = 0;
 	msg_t ret;
 	char recvbuf[SENDSIZE] = {0}, *bufpos;
 
 	// read initial message
 	bytesread = recv(conn.sock, recvbuf, SENDSIZE, 0);
-	if(bytesread < 0){
-		perror("[-]Error in receiving initial part of message");
-		ret.buf = NULL; ret.size = 0; ret.type = NULL_MSG;
-		return ret;
-	}
+	if(bytesread < 0)
+		return recv_handleerror(ret, "[-]Error in receiving initial part of message", errint | EINITMSG);
 
 	// parse type and size of msg_t from the first message
 	type = ((int*)recvbuf)[0];
@@ -211,34 +244,34 @@ msg_t recv_msg(conn_t conn){
 
 	// allocate memory for message depending on type of message
 	if(IS_FILE_MSG(ret.type)){
+		errint |= TFILE;
 		// TODO create a loop that checks for names for the tmp file
 		// this sounds expensive, maybe specify a file name in the message
 		fd = open("./tmp", O_RDWR | O_CREAT, 0644);
-		if(fd < 0){
-			perror("[-]Error creating temp file for file msg");
-			ret.type = NULL_MSG; ret.buf = NULL; ret.size = 0;
-			return ret;
-		}
-		if(ftruncate(fd, ret.size) < 0){
-			perror("[-]Error increasing size of tmp in recv_msg");
-			ret.type = NULL_MSG; ret.buf = NULL; ret.size = 0;
-			close(fd);
-			return ret;
-		}
-		ret.buf = mmap(NULL, ret.size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
-		if(ret.buf == MAP_FAILED){
-			perror("[-]Error on mmap in creating file for recv");
-			close(fd);
-			ret.type = NULL_MSG; ret.buf = NULL; ret.size = 0;
-			return ret;
-		}
+		if(fd < 0)
+			return recv_handleerror(ret, "[-]Error creating temp file for file msg", errint);
+		errint |= EAOPEN;
 		ret.type = fd;
+
+		if(ftruncate(fd, ret.size) < 0)
+			return recv_handleerror(ret, "[-]Error increasing size of tmp in recv_msg", errint);
+
+		ret.buf = mmap(NULL, ret.size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+		if(ret.buf == MAP_FAILED)
+			return recv_handleerror(ret, "[-]Error on mmap in creating file for recv", errint);
+		errint |= EAALLOC;
 	}
 	else{
-		if(ret.size == 0)
+		if(ret.size == 0){
 			ret.buf = NULL;
-		else
+			errint |= TUEMT;
+		}
+		else{
 			ret.buf = (char*)malloc(ret.size);
+			if(ret.buf == NULL)
+				return recv_handleerror(ret, "[-]Error on malloc for update message", errint);
+			errint |= TUPDT;
+		}
 	}
 
 	// calculate the number of bytes left to read
@@ -247,7 +280,7 @@ msg_t recv_msg(conn_t conn){
 	// size => number of bytes contained in the message on the other side
 	bytesleft = (size + sizeof(int) + sizeof(size_t)) - bytesread;
 	printf("[+]Received message of type %d and size %lu\n", type, size);
-	
+
 	// copy bytes read after the header into ret buffer
 	memcpy(ret.buf, recvbuf+(sizeof(int) + sizeof(size_t)), bytesread-(sizeof(int) + sizeof(size_t)));
 	bufpos = ret.buf + (bytesread - (sizeof(int)+sizeof(size_t)));
@@ -256,23 +289,8 @@ msg_t recv_msg(conn_t conn){
 		bytesread = recv(conn.sock, recvbuf, SENDSIZE, 0);
 
 		// error handling if recv fails
-		if(bytesread < 0){
-			perror("[-] Error in receiving part of message");
-			if(IS_FILE_MSG(ret.type)){
-				if(munmap(ret.buf, ret.size)){
-					perror("[-]Error munmap in Error of recv in loop");
-					ret.buf = NULL; ret.size = 0; ret.type = NULL_MSG;
-					return ret;
-				}
-				close(ret.type);
-			}
-			else{
-				if(ret.buf != NULL)
-					free(ret.buf);
-			}
-			ret.buf = NULL; ret.size = 0; ret.type = NULL_MSG;
-			return ret;
-		}
+		if(bytesread < 0)
+			return recv_handleerror(ret, "[-] Error in receiving part of message", errint);
 
 		// copy bytes read into ret buf
 		memcpy(bufpos, recvbuf, bytesread);
@@ -280,8 +298,6 @@ msg_t recv_msg(conn_t conn){
 		bufpos += bytesread;
 		bytesleft -= bytesread;
 		printf("[+]Successfully read and copied %i bytes, %i bytes left\n", bytesread, bytesleft);
-		if(bytesread == 0)
-			break;
 	}
 	printf("[+]Successfully read entire message\n");
 	return ret;
