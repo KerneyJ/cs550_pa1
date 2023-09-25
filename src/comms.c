@@ -211,6 +211,8 @@ msg_t recv_msg(conn_t conn){
 
 	// allocate memory for message depending on type of message
 	if(IS_FILE_MSG(ret.type)){
+		// TODO create a loop that checks for names for the tmp file
+		// this sounds expensive, maybe specify a file name in the message
 		fd = open("./tmp", O_RDWR | O_CREAT, 0644);
 		if(fd < 0){
 			perror("[-]Error creating temp file for file msg");
