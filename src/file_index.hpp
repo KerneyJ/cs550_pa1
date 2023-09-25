@@ -13,6 +13,7 @@ class FileIndex {
         FileIndex();
         void add_peer(std::string filename, conn_t peer);
         // returns random peer that has registered this file for load balancing
-        conn_t get_peer(std::string filename);  
+        conn_t get_rand_peer(std::string filename);  
+        bool contains_peer(std::string filename, conn_t peer);  
         uint count_peers(std::string filename);
 };
