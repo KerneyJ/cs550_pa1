@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include "comms.h"
 
+
 int servinit_conn(conn_t* conn, char* ip, int port){
 	struct sockaddr_in serv_addr;
 	socklen_t addr_size;
