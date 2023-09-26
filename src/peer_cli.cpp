@@ -87,7 +87,7 @@ int launch_CLI() {
 			if (reply.addr == -1) {
 				printf("file named {%s} doesn't exist.", search_filename);
 			}
-			else 
+			else {
 				printf("File found on host at IP {%d}, port {%d}... Downloading...", reply.addr, reply.port);
 				//TODO: Request file from peer!
 
