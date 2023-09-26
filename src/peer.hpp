@@ -4,9 +4,9 @@ extern "C" {
 
 #include "server.hpp" // this also includes comms.h
 
-msg_type send_msg_wrapper(char *ip, int msg_type, char *buf);
+
 int register_as_new_user(); //expects a char array of a directory path, and char array of the index server's ip. Returns 0 if successful.
-int register_file(char*); //Expects char array of the file name to be registered. Returns 0 if successful.
+int register_file(char*); //Expects as input the file name to be registered. Returns 0 if successful.
 int register_dir(char*); //expects a char array of a directory path. Returns 0 if successful.
 int send_file(conn_t client_conn, msg_t message); //expects an ip address char array of the receiving host, and a name of file char array of the file to be sent. Returns 0 if successful.
 int request_file_from_peer(char*, char*);
