@@ -36,12 +36,7 @@ int register_as_new_user() {
 	msg_t message;
 	conn_t client;
 
-	// message = { nullptr, 0, NEW_USER };
-	if(create_message(&message, "", NEW_USER) < 0) {
-		printf("i couldnt make the message :( \n)");
-	}
-
-	printf("size %li and type %i\n", message.size, message.type);
+	create_message(&message, "", NEW_USER);
 
 	clntinit_conn(&client, INDEX_SERVER_IP, INDEX_SERVER_PORT);
 	send_msg(message, client);

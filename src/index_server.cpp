@@ -34,7 +34,7 @@ static void set_stop_flag(int signum) {
 
 static void message_handler(conn_t client_conn, msg_t msg) {
 	unsigned char* ip = (unsigned char*) &client_conn.addr;
-	printf("Doing stuff with my new message from %d.%d.%d.%d:%d\n", ip[0], ip[1], ip[2], ip[3], client_conn.port);
+	printf("Received a message of type %d\n", msg.type);
 
 	switch (msg.type) {
 		case NEW_USER:
@@ -84,6 +84,8 @@ std::mutex waitlist_lock;
 void register_user(conn_t client, msg_t message) {
 	std::unique_lock<std::mutex> lock(peer_lock);
 	peers.push_back(client);
+
+	printf("Added peer, num_peers = %lu\n", peers.size());
 }
 
 void register_file(conn_t client, msg_t message) {
@@ -108,7 +110,6 @@ void register_file(conn_t client, msg_t message) {
 }
 
 void search_index(conn_t client, msg_t message) {
-	// msg_t res;
 	std::string filename = message.buf;
 
 	conn_t peer = file_index.get_rand_peer(filename);

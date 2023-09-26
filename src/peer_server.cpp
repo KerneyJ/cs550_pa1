@@ -48,5 +48,8 @@ int main(int argc, char** argv) {
 
 	servloop_conn(&server_conn, message_handler, &stop);
 
+	printf("Shutting down!\n");
+	close_conn(&server_conn);
+	
 	return 0;
 }
