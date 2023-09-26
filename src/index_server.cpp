@@ -113,6 +113,8 @@ void search_index(conn_t client, msg_t message) {
 	msg_t res;
 	std::string filename = message.buf;
 
+	file_index.add_peer("davegrohl", {420, 69, 0});
+
 	conn_t peer = file_index.get_rand_peer(filename);
 
 	if(peer.addr == -1) {

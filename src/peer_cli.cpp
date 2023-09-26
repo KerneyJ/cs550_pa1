@@ -10,6 +10,7 @@ int launch_CLI() {
 	char *ip = INDEX_SERVER_IP;
 	int port = INDEX_SERVER_PORT;
 	char *file_dir = SHARED_FILE_DIR;
+	char search_filename[MAX_DIR_NAME_SIZE];
 
 	//Welcome
 	printf("\n-------------------------------------------------\n");
@@ -49,12 +50,12 @@ int launch_CLI() {
 			printf("Registering a new file...\n");
 		}
 		else if (user_input == 3) {
-			printf("Searching for a file on the server...\n");
+			printf("🔎 Enter file would you like to search for: ");
 			//read in the filename from user
-			char *filename = "hithereimafile"; //TODO
-			conn_t reply = search_for_file(filename);
+			scanf("%s", &search_filename);
+			conn_t reply = search_for_file(search_filename);
 			if (reply.addr == -1) {
-				printf("file doesn't exist.");
+				printf("file named {%s} doesn't exist.", &search_filename);
 			}
 			else {
 				printf("File found on host at IP {%d}, port {%d}", reply.addr, reply.port);
