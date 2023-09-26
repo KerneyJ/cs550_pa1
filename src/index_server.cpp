@@ -91,24 +91,27 @@ void register_user(conn_t client, msg_t message) {
 }
 
 void register_file(conn_t client, msg_t message) {
-	std::string filename = message.buf;
+	std::string filename(message.buf);
 
 	file_index.add_peer(filename, client);
 
-	if(file_index.count_peers(filename) < REPLICATION_FACTOR) {
-		request_replication(filename);
+	printf("registered client (%d, %d) with file %s. total for file: %d\n", 
+		client.addr, client.port, filename.data(), file_index.count_peers(filename));
 
-		std::unique_lock<std::mutex> lock(waitlist_lock);
-		{
-			replication_waitlist.insert(filename);
-		}
-	} else {
-		std::unique_lock<std::mutex> lock(waitlist_lock);
-		{
-			if(replication_waitlist.find(filename) != replication_waitlist.end())
-				replication_waitlist.erase(filename);
-		}
-	}
+	// if(file_index.count_peers(filename) < REPLICATION_FACTOR) {
+	// 	request_replication(filename);
+
+	// 	std::unique_lock<std::mutex> lock(waitlist_lock);
+	// 	{
+	// 		replication_waitlist.insert(filename);
+	// 	}
+	// } else {
+	// 	std::unique_lock<std::mutex> lock(waitlist_lock);
+	// 	{
+	// 		if(replication_waitlist.find(filename) != replication_waitlist.end())
+	// 			replication_waitlist.erase(filename);
+	// 	}
+	// }
 }
 
 void search_index(conn_t client, msg_t message) {

@@ -48,21 +48,13 @@ int register_as_new_user() {
 }
 
 
-/*Registers a file with the index server. Sends name_of_file to index server.*/
-int register_file(char* name_of_file) {
-	int msg_status = send_msg_wrapper(index_server_ip, REGISTER_FILE, name_of_file);
-	if (msg_status == -7) {
-		return 1; //-7 means there was an error.
-	}
-	printf("Registered file: %s", name_of_file);
-	return 0;
-}
+
 
 /*Registers all the files in a directory. Just calls register file for every file in dir*/
 int register_dir(char* dirname) {
 	DIR *dir;
 	struct dirent *entry;
-
+	int files_registered = 0;
 	dir = opendir(dirname);
 
 	if (dir == NULL) {
@@ -72,42 +64,108 @@ int register_dir(char* dirname) {
 
 	while ((entry = readdir(dir)) != NULL) {
 		if (entry->d_type == DT_REG) {
-			if (register_file(entry->d_name)) {
-				return 1; //error registering file
-			};
+			if (register_file(entry->d_name) < 0) {
+				closedir(dir);
+				return -1; //error registering file
+			}
+			files_registered++;
 		}
 	}
 
 	closedir(dir);
-	return 0;
+	return files_registered;
 }
 
 //Sends a file to a host. Expects an ip address char array of the receiving host, and a name of file char array of the file to be sent. Returns 0 if successful.
-int send_file(char* ip, char* filename) {
-	//TODO
-
+int send_file(conn_t client_conn, msg_t message) {
 	//This is called when the host server receives a msg_t with msg_type == REQUEST_FILE.
 	//The host then sends the message to the IP address of the host requesting the file by using the comms.c interface. 
-	msg_type msg_status = send_msg_wrapper(ip, FILE_MSG, filename);
-	if (msg_status == -7) {
-		return 1; //Message error
+	msg_t file_message;
+	char* path;
+	
+	sprintf(path, "%s/%s", SHARED_FILE_DIR, message.buf);
+
+	if(!createfile_msg(&file_message, path)) {
+		msg_t err_msg;
+		create_message(&err_msg, "", STATUS_BAD);
+		send_msg(err_msg, client_conn);
+		delete_msg(&err_msg);
+		perror("File could not be sent!\n");
+		return -1;
 	}
+
+	send_msg(file_message, client_conn);
+	delete_msg(&file_message);
+
+	printf("File successfully sent!\n");
+
 	return 0;
 }
 
 //Request a file from peer, given the ip address of the peer who has the file and the name of the file being requested.
-int request_file_from_peer(char* ip, char* filename) {
-	//TODO
+int request_file_from_peer(conn_t peer, char* filename) {
 	//Send a msg_t to the ip of the file owner host with msg_type == -3 and buf == filename.
 	//If the host responds by sending you the file, save the file to disk at local_shared_dir.
 	//optional: If the host does not respond, query the index_server for an alternative host until there are no more hosts left to try or you download the file successfuly.
-	send_msg_wrapper(ip, REQUEST_FILE, filename);
+	conn_t client_conn;
+	msg_t req, res;
+
+	// temp solution
+	char ip_str[80];
+	unsigned char* ip = (unsigned char*) &peer.addr;
+	sprintf(ip_str, "%d.%d.%d.%d", ip[0], ip[1], ip[2], ip[3]);
+	clntinit_conn(&client_conn, ip_str, peer.port);
+	
+	// clntinit_conn(&client_conn, &peer); // Jamie todo
+	create_message(&req, filename, REQUEST_FILE);
+	send_msg(req, peer);
+	delete_msg(&req);
+
+	res = recv_msg(client_conn);
+
+	if(res.type == NULL_MSG) {
+		close_conn(&client_conn);
+		perror("Message failed to receive.\n");
+		return -1;
+	}
+
+	if(res.type == STATUS_BAD) {
+		close_conn(&client_conn);
+		perror("Peer did not have requested file.\n");
+		return -1;
+	}
+
+	printf("File successfully downloaded!\n");
+
+	close_conn(&client_conn);
+	delete_msg(&res);
+
+	//TODO: register file after receiving.
+	// register_file(filename);
+
+	return 0;
 }
 
 //expects the ip address of the host who has the file (char*), and the name of the file to replicate (char*). Returns 0 if successful.
-int replicate_file(char* ip, char* filename) {
-	//TODO
-	return request_file_from_peer(ip, filename);
+int replicate_file(conn_t client_conn, msg_t message) {
+	return request_file_from_peer(client_conn, message.buf);
+}
+
+/*Registers a file with the index server. Sends name_of_file to index server. Doesn't wait for a response.*/
+int register_file(char* name_of_file) {
+	msg_t message;
+	conn_t connection;
+	create_message(&message, name_of_file, REGISTER_FILE);
+	clntinit_conn(&connection,INDEX_SERVER_IP, INDEX_SERVER_PORT);
+	if (send_msg(message, connection) < 0) {
+		delete_msg(&message);
+		close_conn(&connection);
+		return -1;
+	}
+	delete_msg(&message);
+	close_conn(&connection);
+
+	return 0;
 }
 
 //Searches for a file on the index server. Expects a filename. Returns the ip address of a host who owns the file if found.
@@ -121,15 +179,16 @@ conn_t search_for_file(char* filename) {
 	send_msg(message, connection);
 	delete_msg(&message);
 	reply = recv_msg(connection);
+	delete_msg(&reply);
+	close_conn(&connection);
 	if (reply.type == STATUS_BAD) {
 		return {-1,-1,-1}; //Sorry no Dave Grohl.
+
 	}
 	//Otherwise the file exists.
 	int *reply_data = (int*)reply.buf;
 	int host_ip = reply_data[0];
 	int host_port = reply_data[1];
-	delete_msg(&reply);
-
 	return {host_ip, host_port, 0};
 }
 

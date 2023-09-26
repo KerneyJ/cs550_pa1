@@ -10,7 +10,7 @@
 
 class ThreadPool {
     private:
-        std::queue<std::function<void()>> work_queue;
+        std::queue<std::function<void()>*> work_queue;
         std::vector<std::thread> threads;
         sig_atomic_t interrupt;
         std::mutex queue_lock;
@@ -18,6 +18,6 @@ class ThreadPool {
         void thread_loop();
     public:
         ThreadPool();
-        void queue_job(std::function<void()>);
+        void queue_job(std::function<void()>*);
         void teardown();
 };
