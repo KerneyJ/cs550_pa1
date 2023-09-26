@@ -10,7 +10,7 @@ extern "C" {
 
 class FileIndex {
     private:
-        std::unordered_map<std::string, std::pmr::vector<conn_t>> file_peer_map;
+        std::unordered_map<std::string, std::vector<conn_t>> file_peer_map;
         std::unordered_map<std::string, std::mutex> file_lock_map;
     public:
         FileIndex();
