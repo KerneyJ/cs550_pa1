@@ -135,24 +135,24 @@ conn_t search_for_file(char* filename) {
 
 //Download a file. Expects filename. Asks index server for ip address of host with file. Then asks host for the file. Returns 0 if successful.
 //This function just wraps the search_for_file and request_file_from_peer functions to make for a simple call from the CLI.
-int request_file(char* filename) {
-	char *file_owner_ip = search_for_file(filename);
-	//If the file exists, request it from the peer host. 
-	if (file_owner_ip) {
-		if (request_file_from_peer(file_owner_ip, filename)) {
-			return -2; //Peer didn't have file. 
-		}
-		//Successful file download. Register file with index server.
-		else {
-			if(register_file(filename)) {
-				return -3; //Failed to register file with server.
-			}
-			else {
-				return 0;
-			}
-		}
-	}
-	else {
-		return -1; //File doesn't exist
-	}
-}
+// int request_file(char* filename) {
+// 	conn_t file_owner_ip = search_for_file(filename);
+// 	//If the file exists, request it from the peer host. 
+// 	if (file_owner_ip.addr != -1) {
+// 		if (request_file_from_peer(file_owner_ip.addr, filename)) {
+// 			return -2; //Peer didn't have file. 
+// 		}
+// 		//Successful file download. Register file with index server.
+// 		else {
+// 			if(register_file(filename)) {
+// 				return -3; //Failed to register file with server.
+// 			}
+// 			else {
+// 				return 0;
+// 			}
+// 		}
+// 	}
+// 	else {
+// 		return -1; //File doesn't exist
+// 	}
+// }
