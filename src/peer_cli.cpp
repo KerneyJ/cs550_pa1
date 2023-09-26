@@ -22,12 +22,7 @@ int launch_CLI() {
 	printf("\n-------------------------------------------------\n");
 	printf("Howdy partner 🤠, ready to pirate some 💿💿💿?");
 	printf("\n-------------------------------------------------\n");
-	while (y_or_n != 'y') {
-		printf("\n🚀 To start, enter the name of the file sharing directory you'd like to use: ");
-		scanf("%s", &local_shared_dir);
-		printf("Ok. Your shared directory is: {%s}. Is that right? [y/n]", local_shared_dir);
-		scanf("%c", &y_or_n);
-	}
+	
 	printf("Alright then, giiiiddy up! 🤠🤠🤠🤠");
 	
 	while (is_running) {
