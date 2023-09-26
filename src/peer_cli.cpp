@@ -11,8 +11,6 @@ int launch_CLI() {
 	int port = INDEX_SERVER_PORT;
 	char *file_dir = SHARED_FILE_DIR;
 
-	run_peer_server(ip, port, file_dir);
-
 	//Welcome
 	printf("\n-------------------------------------------------\n");
 	printf("Howdy partner 🤠, ready to pirate some 💿💿💿?");
