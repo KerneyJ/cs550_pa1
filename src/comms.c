@@ -12,7 +12,6 @@ int servinit_conn(conn_t* conn, char* ip, int port){
 		return -1;
 	}
 	printf("[+]Server socket created successfully at %s:%d.\n", ip, port);
-
 	serv_addr.sin_family = AF_INET;
 	serv_addr.sin_port = conn->port;
 	serv_addr.sin_addr.s_addr = conn->addr;
@@ -21,13 +20,19 @@ int servinit_conn(conn_t* conn, char* ip, int port){
 		perror("[-]Error in bind");
 		return -1;
 	}
+#ifdef DEBUG
 	printf("[+]Binding successfull.\n");
+#endif
 	return 0;
 }
 
 int servlstn_conn(conn_t* conn, int backlog){
 	if(listen(conn->sock, backlog) == 0)
+#ifdef DEBUG
 		printf("[+]Listening...\n");
+#else
+		;
+#endif
 	else{
 		perror("[-]Error in listening");
 		return -1;
@@ -52,7 +57,6 @@ conn_t servacpt_conn(conn_t* conn){
 
 	unsigned char* ip = (unsigned char*)&client_conn.addr;
 	printf("[+]Accepted connection at %d.%d.%d.%d:%d\n", ip[0], ip[1], ip[2], ip[3], client_conn.port);
-
 	return client_conn;
 }
 
@@ -124,7 +128,9 @@ int createfile_msg(msg_t* msg, char* path){
 		perror("[-]MMAP error while creating file message");
 		return -1;
 	}
+#ifdef DEBUG
 	printf("[+]Successfully created a file message\n");
+#endif
 	return 0;
 }
 
@@ -179,8 +185,9 @@ int send_msg(msg_t msg, conn_t conn){ // TODO might need to use protobuff for me
 	bzero(sendbuf, SENDSIZE);
 	bytestosend -= bufferroom;
 	bufpos = msg.buf + bufferroom;
+#ifdef DEBUG
 	printf("[+]Successfully sent first packet. bytes left: %d\n", bytestosend);
-
+#endif
 	while(bytestosend > 0){
 		if(SENDSIZE < bytestosend)
 			sending = SENDSIZE;
@@ -196,7 +203,9 @@ int send_msg(msg_t msg, conn_t conn){ // TODO might need to use protobuff for me
 		bzero(sendbuf, SENDSIZE);
 		bufpos += sent;
 		bytestosend -= sent;
+#ifdef DEBUG
 		printf("[+]Sent %i bytes of %i\n", sent, bytestosend);
+#endif
 	}
 	printf("[+]Successfully sent entire message\n");
 	return 0;
@@ -294,8 +303,9 @@ msg_t recv_msg(conn_t conn){
 	// sizeof(size_t) => msg_t.size
 	// size => number of bytes contained in the message on the other side
 	bytesleft = (size + sizeof(int) + sizeof(size_t)) - bytesread;
+#ifdef DEBUG
 	printf("[+]Received message of type %d and size %lu\n", type, size);
-
+#endif
 	// copy bytes read after the header into ret buffer
 	memcpy(ret.buf, recvbuf+(sizeof(int) + sizeof(size_t)), bytesread-(sizeof(int) + sizeof(size_t)));
 	bufpos = ret.buf + (bytesread - (sizeof(int)+sizeof(size_t)));
@@ -312,8 +322,12 @@ msg_t recv_msg(conn_t conn){
 		bzero(recvbuf, SENDSIZE);
 		bufpos += bytesread;
 		bytesleft -= bytesread;
+#ifdef DEBUG
 		printf("[+]Successfully read and copied %i bytes, %i bytes left\n", bytesread, bytesleft);
+#endif
 	}
+#ifdef DEBUG
 	printf("[+]Successfully read entire message\n");
+#endif
 	return ret;
 }
