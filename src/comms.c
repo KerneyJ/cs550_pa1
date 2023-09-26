@@ -164,7 +164,7 @@ int delete_msg(msg_t* msg){
 }
 
 int send_msg(msg_t msg, conn_t conn){ // TODO might need to use protobuff for message layout
-	printf("[*]Attempting to send message of size \n");
+	printf("[*]Attempting to send message of size %d bytes\n", msg.size);
 	long int bytestosend = msg.size;
 	size_t bufferroom = SENDSIZE, sent, sending;
 	char sendbuf[SENDSIZE] = {0}, *bufpos;
