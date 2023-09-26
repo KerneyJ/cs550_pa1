@@ -62,6 +62,6 @@ void ThreadPool::thread_loop() {
         }
 
         (*job)();
-        delete *job;
+        delete job;
     }
 }
