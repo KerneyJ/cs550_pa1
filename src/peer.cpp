@@ -48,15 +48,7 @@ int register_as_new_user() {
 }
 
 
-/*Registers a file with the index server. Sends name_of_file to index server.*/
-int register_file(char* name_of_file) {
-	int msg_status = send_msg_wrapper(index_server_ip, REGISTER_FILE, name_of_file);
-	if (msg_status == -7) {
-		return 1; //-7 means there was an error.
-	}
-	printf("Registered file: %s", name_of_file);
-	return 0;
-}
+
 
 /*Registers all the files in a directory. Just calls register file for every file in dir*/
 int register_dir(char* dirname) {
@@ -108,6 +100,18 @@ int request_file_from_peer(char* ip, char* filename) {
 int replicate_file(char* ip, char* filename) {
 	//TODO
 	return request_file_from_peer(ip, filename);
+}
+
+/*Registers a file with the index server. Sends name_of_file to index server. Doesn't wait for a response.*/
+int register_file(char* name_of_file) {
+	msg_t message;
+	conn_t connection;
+	create_message(&message, name_of_file, REGISTER_FILE);
+	clntinit_conn(&connection,INDEX_SERVER_IP, INDEX_SERVER_PORT);
+	if (send_msg(message, connection) < 0) {
+		return -1;
+	}
+	return 0;
 }
 
 //Searches for a file on the index server. Expects a filename. Returns the ip address of a host who owns the file if found.
