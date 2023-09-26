@@ -23,8 +23,8 @@ static void search_index(conn_t client, msg_t message);
 static void request_replication(std::string filename);
 static msg_t create_replication_msg(std::string filename, conn_t peer);
 
-volatile sig_atomic_t stop;
-conn_t server_conn;
+static volatile sig_atomic_t stop;
+static conn_t server_conn;
 
 static void set_stop_flag(int signum) {
 	printf("Catching SIGINT!\n");
@@ -108,14 +108,13 @@ void register_file(conn_t client, msg_t message) {
 }
 
 void search_index(conn_t client, msg_t message) {
-	msg_t res;
+	// msg_t res;
 	std::string filename = message.buf;
 
 	conn_t peer = file_index.get_rand_peer(filename);
 	int peer_data[2] = {peer.addr, peer.port};
 
-	if(createupdt_msg(&res, (char*) peer_data, -1, STATUS_OK) == -1)
-		return;
+	msg_t res = { (char*) &peer_data, sizeof(int) * 2, STATUS_OK };
 
 	send_msg(res, client);
 }
