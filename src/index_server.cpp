@@ -110,14 +110,21 @@ void register_file(conn_t client, msg_t message) {
 }
 
 void search_index(conn_t client, msg_t message) {
+	msg_t res;
 	std::string filename = message.buf;
 
 	conn_t peer = file_index.get_rand_peer(filename);
-	int peer_data[2] = {peer.addr, peer.port};
 
-	msg_t res = { (char*) &peer_data, sizeof(int) * 2, STATUS_OK };
+	if(peer.addr == -1) {
+		create_message(&res, "", STATUS_BAD);
+	} else {
+		int peer_data[2] = {peer.addr, peer.port};
+		create_message(&res, (char*) peer_data, STATUS_OK);
+	}
 
 	send_msg(res, client);
+
+	delete_msg(&res);
 }
 
 std::vector<conn_t> find_replication_peers(std::string filename) {
