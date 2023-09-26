@@ -11,7 +11,10 @@ Running a server loop with server.cpp
 
 #include "peer.hpp" // includes stdlib.h string.h
 #include <stdio.h>
+#include "comms.h"
+#include <stdlib.h>
 #include <dirent.h>
+#include <string.h> 
 
 #define IP_LENGTH 24
 #define MAX_DIR_NAME_SIZE 1024
@@ -137,5 +140,34 @@ int run_peer_server(char *index_server_ip, int port, char* dir_name) {
 
 	//TODO
 	//Run the server loop until user quits.
-	return 0;
+
+
+	if(fork()){
+			char recvbuf[SENDSIZE] = {0};
+			conn_t conn = {0, 0, 0};
+			servinit_conn(&conn, "127.0.0.1", 8080);
+			servlstn_conn(&conn, 5);
+			conn_t client = servacpt_conn(&conn);
+			msg_t msg = recv_msg(client);
+			/*
+			size_t size;
+			int type, bytesread = recv(conn.sock, recvbuf, SENDSIZE, 0);
+			type = ((int*)recvbuf)[0];
+			size = ((size_t*)(recvbuf+sizeof(int)))[0];
+			*/
+			printf("[+]Received message of type %d and size %lu\n", msg.type, msg.size);
+			close_conn(&conn);
+			close_conn(&client);
+		}
+		else{
+			sleep(3);
+			conn_t conn = {0, 0, 0};
+			clntinit_conn(&conn, "127.0.0.1", 8080);
+			msg_t msg;
+			createfile_msg(&msg, "./data/1page.data");
+			// createupdt_msg(&msg, "Hello server", 12);
+			send_msg(msg, conn);
+			close_conn(&conn);
+		}
+
 }
