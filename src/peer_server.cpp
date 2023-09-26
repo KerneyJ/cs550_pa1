@@ -34,7 +34,7 @@ int main(int argc, char** argv) {
     char *ip = "127.0.0.1";
     int port = 8081;
 
-	// register_as_new_user(INDEX_SERVER_IP, INDEX_SERVER_PORT, SHARED_FILE_DIR);
+	register_as_new_user();
 
     if(servinit_conn(&server_conn, ip, port) < 0) {
 		printf("Failed to initialize server, shutting down.\n");

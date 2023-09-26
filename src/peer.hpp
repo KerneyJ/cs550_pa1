@@ -1,7 +1,7 @@
 #include "server.hpp" // this also includes comms.h
 
 msg_type send_msg_wrapper(char *ip, int msg_type, char *buf);
-int register_as_new_user(char*, int, char*); //expects a char array of a directory path, and char array of the index server's ip. Returns 0 if successful.
+int register_as_new_user(); //expects a char array of a directory path, and char array of the index server's ip. Returns 0 if successful.
 int register_file(char*); //Expects char array of the file name to be registered. Returns 0 if successful.
 int register_dir(char*); //expects a char array of a directory path. Returns 0 if successful.
 int send_file(char*, char*);  //expects an ip address char array of the receiving host, and a name of file char array of the file to be sent. Returns 0 if successful.

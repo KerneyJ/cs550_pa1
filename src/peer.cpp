@@ -16,7 +16,8 @@ Running a server loop with server.cpp
 #include "comms.h"
 #include <stdlib.h>
 #include <dirent.h>
-#include <string.h> 
+#include <string.h>
+#include "constants.hpp" 
 
 #define IP_LENGTH 24
 #define MAX_DIR_NAME_SIZE 1024
@@ -31,13 +32,23 @@ msg_type send_msg_wrapper(char *ip, int msg_type, char *buf) {
 }
 
 //Connect as new user. Conect to index server (which will get my ip) and register_dir(directory).
-int register_as_new_user(char* dir_name, char* index_ip){
-	strcpy(index_server_ip, index_ip);
-	strcpy(local_shared_dir, dir_name);
+int register_as_new_user() {
+	msg_t message;
+	conn_t client;
 
-	if (register_dir(dir_name)) {
-		return 1; //error registering directory.
+	// message = { nullptr, 0, NEW_USER };
+	if(create_message(&message, "", NEW_USER) < 0) {
+		printf("i couldnt make the message :( \n)");
 	}
+
+	printf("size %li and type %i\n", message.size, message.type);
+
+	clntinit_conn(&client, INDEX_SERVER_IP, INDEX_SERVER_PORT);
+	send_msg(message, client);
+	close_conn(&client);
+
+	delete_msg(&message);
+
 	return 0;
 }
 

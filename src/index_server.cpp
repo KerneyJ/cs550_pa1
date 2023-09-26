@@ -34,7 +34,7 @@ static void set_stop_flag(int signum) {
 
 static void message_handler(conn_t client_conn, msg_t msg) {
 	unsigned char* ip = (unsigned char*) &client_conn.addr;
-	printf("Doing stuff with my new connection: %d.%d.%d.%d:%d\n", ip[0], ip[1], ip[2], ip[3], client_conn.port);
+	printf("Doing stuff with my new message from %d.%d.%d.%d:%d\n", ip[0], ip[1], ip[2], ip[3], client_conn.port);
 
 	switch (msg.type) {
 		case NEW_USER:

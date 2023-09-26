@@ -1,6 +1,8 @@
 CC=gcc
 CPP=g++
 
+CPP_FLAGS=-Wno-write-strings
+
 BIN_DIR=bin
 OBJ_DIR=obj
 SRC_DIR=src
@@ -20,16 +22,16 @@ $(TEST): $(C_OBJS)
 	$(CC) $(SRC_DIR)/$(TEST) $(addprefix $(OBJ_DIR)/,$(C_OBJS)) -o $(BIN_DIR)/test
 
 $(IDXSVR): $(C_OBJS) $(CPP_OBJS)
-	$(CPP) $(SRC_DIR)/$(IDXSVR) $(addprefix $(OBJ_DIR)/,$(C_OBJS)) $(addprefix $(OBJ_DIR)/,$(CPP_OBJS)) -o $(BIN_DIR)/index_server
+	$(CPP) $(CPP_FLAGS) $(SRC_DIR)/$(IDXSVR) $(addprefix $(OBJ_DIR)/,$(C_OBJS)) $(addprefix $(OBJ_DIR)/,$(CPP_OBJS)) -o $(BIN_DIR)/index_server
 
 $(PEER_CLI): $(C_OBJS) $(CPP_OBJS)
-	$(CPP) $(SRC_DIR)/$(PEER_CLI) $(addprefix $(OBJ_DIR)/,$(C_OBJS)) $(addprefix $(OBJ_DIR)/,$(CPP_OBJS)) -o $(BIN_DIR)/peer_cli
+	$(CPP) $(CPP_FLAGS) $(SRC_DIR)/$(PEER_CLI) $(addprefix $(OBJ_DIR)/,$(C_OBJS)) $(addprefix $(OBJ_DIR)/,$(CPP_OBJS)) -o $(BIN_DIR)/peer_cli
 
 $(PEER_SERVER): $(C_OBJS) $(CPP_OBJS)
-	$(CPP) $(SRC_DIR)/$(PEER_SERVER) $(addprefix $(OBJ_DIR)/,$(C_OBJS)) $(addprefix $(OBJ_DIR)/,$(CPP_OBJS)) -o $(BIN_DIR)/peer_server
+	$(CPP) $(CPP_FLAGS) $(SRC_DIR)/$(PEER_SERVER) $(addprefix $(OBJ_DIR)/,$(C_OBJS)) $(addprefix $(OBJ_DIR)/,$(CPP_OBJS)) -o $(BIN_DIR)/peer_server
 
 $(CPP_OBJS): %.o: $(SRC_DIR)/%.cpp
-	$(CPP) -c $< -o $(OBJ_DIR)/$@
+	$(CPP) $(CPP_FLAGS) -c $< -o $(OBJ_DIR)/$@
 
 $(C_OBJS): %.o: $(SRC_DIR)/%.c
 	$(CC) -c $< -o $(OBJ_DIR)/$@
