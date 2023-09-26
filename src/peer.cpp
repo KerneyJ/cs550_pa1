@@ -120,8 +120,13 @@ int register_file(char* name_of_file) {
 	create_message(&message, name_of_file, REGISTER_FILE);
 	clntinit_conn(&connection,INDEX_SERVER_IP, INDEX_SERVER_PORT);
 	if (send_msg(message, connection) < 0) {
+		delete_msg(&message);
+		close_conn(&connection);
 		return -1;
 	}
+	delete_msg(&message);
+	close_conn(&connection);
+
 	return 0;
 }
 
@@ -136,15 +141,16 @@ conn_t search_for_file(char* filename) {
 	send_msg(message, connection);
 	delete_msg(&message);
 	reply = recv_msg(connection);
+	delete_msg(&reply);
+	close_conn(&connection);
 	if (reply.type == STATUS_BAD) {
 		return {-1,-1,-1}; //Sorry no Dave Grohl.
+
 	}
 	//Otherwise the file exists.
 	int *reply_data = (int*)reply.buf;
 	int host_ip = reply_data[0];
 	int host_port = reply_data[1];
-	delete_msg(&reply);
-
 	return {host_ip, host_port, 0};
 }
 
