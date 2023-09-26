@@ -11,16 +11,16 @@ FileIndex::FileIndex() {
 void FileIndex::add_peer(std::string filename, conn_t peer) {
     auto lock_iter = file_lock_map.find(filename);
 
-    // no lock found, no files in map, locking is unneccessary
+    // no lock found, no files in map, locking is unnecessary
     if(lock_iter == file_lock_map.end()) {
-        file_peer_map.insert({ filename, { peer } });
+        file_peer_map.emplace(filename, std::vector<conn_t> { peer });
+        file_lock_map[filename]; // instantiates mutex
         return;
     }
     
     // lock found, there's already an entry for this filename
     std::unique_lock<std::mutex> lock (lock_iter->second);
     file_peer_map.at(filename).push_back(peer);
-
 }
 
 uint FileIndex::count_peers(std::string filename) {

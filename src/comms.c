@@ -119,6 +119,7 @@ int createfile_msg(msg_t* msg, char* path){
 		sprintf(error_string, "[-]Error in createfile_msg open(%s)", path);
 		error_string[255] = 0;
 		perror(error_string);
+		return -1;
 	}
 	fstat(fd, &s);
 	msg->type = fd;
@@ -168,6 +169,7 @@ int send_msg(msg_t msg, conn_t conn){ // TODO might need to use protobuff for me
 	size_t bufferroom = SENDSIZE, sent, sending;
 	char sendbuf[SENDSIZE] = {0}, *bufpos;
 	bufpos = sendbuf;
+	// TODO send file name on file message
 	memcpy(bufpos, (char*)(&msg.type), sizeof(int));
 	bufpos += sizeof(int);
 	memcpy(bufpos, (char*)(&msg.size), sizeof(size_t));
@@ -175,7 +177,6 @@ int send_msg(msg_t msg, conn_t conn){ // TODO might need to use protobuff for me
 	bufferroom -= (sizeof(int) + sizeof(size_t));
 	if(msg.size)
 		memcpy(bufpos, msg.buf, bufferroom);
-	
 	// initial send
 	sent = send(conn.sock, sendbuf, SENDSIZE, 0);
 	if(sent < 0){
