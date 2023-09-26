@@ -14,7 +14,7 @@ CPP_SRCS=server.cpp thread_pool.cpp file_index.cpp peer.cpp
 C_OBJS=$(C_SRCS:.c=.o)
 CPP_OBJS=$(CPP_SRCS:.cpp=.o)
 
-all: $(PEER) $(PEER_SERVER) $(IDXSVR)
+all: $(PEER_CLI) $(PEER_SERVER) $(IDXSVR)
 
 $(TEST): $(C_OBJS)
 	$(CC) $(SRC_DIR)/$(TEST) $(addprefix $(OBJ_DIR)/,$(C_OBJS)) -o $(BIN_DIR)/test
@@ -22,8 +22,8 @@ $(TEST): $(C_OBJS)
 $(IDXSVR): $(C_OBJS) $(CPP_OBJS)
 	$(CPP) $(SRC_DIR)/$(IDXSVR) $(addprefix $(OBJ_DIR)/,$(C_OBJS)) $(addprefix $(OBJ_DIR)/,$(CPP_OBJS)) -o $(BIN_DIR)/index_server
 
-$(PEER): $(C_OBJS) $(CPP_OBJS)
-	$(CPP) $(SRC_DIR)/$(PEER) $(addprefix $(OBJ_DIR)/,$(C_OBJS)) $(addprefix $(OBJ_DIR)/,$(CPP_OBJS)) -o $(BIN_DIR)/peer_cli
+$(PEER_CLI): $(C_OBJS) $(CPP_OBJS)
+	$(CPP) $(SRC_DIR)/$(PEER_CLI) $(addprefix $(OBJ_DIR)/,$(C_OBJS)) $(addprefix $(OBJ_DIR)/,$(CPP_OBJS)) -o $(BIN_DIR)/peer_cli
 
 $(PEER_SERVER): $(C_OBJS) $(CPP_OBJS)
 	$(CPP) $(SRC_DIR)/$(PEER_SERVER) $(addprefix $(OBJ_DIR)/,$(C_OBJS)) $(addprefix $(OBJ_DIR)/,$(CPP_OBJS)) -o $(BIN_DIR)/peer_server
