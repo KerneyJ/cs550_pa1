@@ -1,14 +1,17 @@
 #include <stdio.h> 
-#include <peer.hpp>
+#include "peer.hpp"
+#include "constants.hpp"
 
 #define MAX_DIR_NAME_SIZE 1024
 
 
 int launch_CLI() {
 
+    char *ip = INDEX_SERVER_IP;
+    int port = INDEX_SERVER_PORT;
+    char *file_dir = SHARED_FILE_DIR;
 
-    run_peer_server(); 
-
+    run_peer_server(ip, port, file_dir); 
 
     //Welcome
     printf("\n-------------------------------------------------\n");
@@ -40,10 +43,9 @@ int launch_CLI() {
             printf("Enter a directory name (up to %d characters): ", MAX_DIR_NAME_SIZE - 1);
             scanf("%99s", local_shared_dir);
             
-            register_
+            // register_file()
 
-
-    printf("You entered: %s\n", local_shared_dir);
+            printf("You entered: %s\n", local_shared_dir);
         }
         else if (user_input == 2) {
             printf("Registering a new file...\n");

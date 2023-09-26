@@ -9,6 +9,7 @@
 #include "file_index.hpp"
 #include "thread_pool.hpp"
 #include "server.hpp"
+#include "constants.hpp"
 
 extern "C" {
 	#include "comms.h"
@@ -50,8 +51,8 @@ int main(int argc, char** argv) {
 
     signal(SIGINT, set_stop_flag);
 
-    char *ip = "127.0.0.1";
-    int port = 8080;
+    char *ip = INDEX_SERVER_IP;
+    int port = INDEX_SERVER_PORT;
 
     if(servinit_conn(&server_conn, ip, port) < 0) {
 		printf("Failed to initialize server, shutting down.\n");
