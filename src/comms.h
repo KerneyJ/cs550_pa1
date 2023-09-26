@@ -9,13 +9,12 @@
 
 #pragma once
 
-#define UPDATE_MSG_SIZE 256
 #define SENDSIZE 1024
 
 #define IS_FILE_MSG(msg_type) msg_type > 0
 
 enum msg_type {
-	FILE_MSG		= 1, // DO NOT COMPARE TO THIS ENUM VALUE!!!!! file messages can be of type positive integer
+	FILE_MSG		=  1, // DO NOT COMPARE TO THIS ENUM VALUE!!!!! file messages can be of type positive integer
 	NULL_MSG		=  0,
 	NEW_USER		= -1,
 	SEARCH_INDEX	= -2,

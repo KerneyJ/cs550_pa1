@@ -89,13 +89,18 @@ inline int create_message(msg_t* msg, char* string, int type){
 }
 
 int createupdt_msg(msg_t* msg, char* update_message, int len, int type){
-	msg->buf = (char*)malloc(UPDATE_MSG_SIZE * sizeof(char));
-	if(msg->buf == NULL){
-		perror("[-]Error mallocing for update message buffer");
-		return -1;
+	if(len){
+		msg->buf = (char*)malloc(len * sizeof(char));
+		if(msg->buf == NULL){
+			perror("[-]Error mallocing for update message buffer");
+			return -1;
+		}
+	}
+	else{
+		msg->buf = NULL;
 	}
 	memcpy(msg->buf, update_message, len);
-	msg->size = UPDATE_MSG_SIZE;
+	msg->size = len;
 	msg->type = type;
 	return 0;
 }
@@ -152,8 +157,9 @@ int delete_msg(msg_t* msg){
 }
 
 int send_msg(msg_t msg, conn_t conn){ // TODO might need to use protobuff for message layout
-	printf("[*]Attempting to send message\n");
-	size_t bytestosend = msg.size, bufferroom = SENDSIZE, sent, sending;
+	printf("[*]Attempting to send message of size \n");
+	long int bytestosend = msg.size;
+	size_t bufferroom = SENDSIZE, sent, sending;
 	char sendbuf[SENDSIZE] = {0}, *bufpos;
 	bufpos = sendbuf;
 	memcpy(bufpos, (char*)(&msg.type), sizeof(int));
@@ -161,7 +167,8 @@ int send_msg(msg_t msg, conn_t conn){ // TODO might need to use protobuff for me
 	memcpy(bufpos, (char*)(&msg.size), sizeof(size_t));
 	bufpos += sizeof(size_t);
 	bufferroom -= (sizeof(int) + sizeof(size_t));
-	memcpy(bufpos, msg.buf, bufferroom);
+	if(msg.size)
+		memcpy(bufpos, msg.buf, bufferroom);
 	
 	// initial send
 	sent = send(conn.sock, sendbuf, SENDSIZE, 0);
@@ -172,7 +179,7 @@ int send_msg(msg_t msg, conn_t conn){ // TODO might need to use protobuff for me
 	bzero(sendbuf, SENDSIZE);
 	bytestosend -= bufferroom;
 	bufpos = msg.buf + bufferroom;
-	printf("[+]Successfully sent first packet");
+	printf("[+]Successfully sent first packet. bytes left: %d\n", bytestosend);
 
 	while(bytestosend > 0){
 		if(SENDSIZE < bytestosend)
@@ -272,6 +279,7 @@ msg_t recv_msg(conn_t conn){
 		if(ret.size == 0){
 			ret.buf = NULL;
 			errint |= TUEMT;
+			return ret;
 		}
 		else{
 			ret.buf = (char*)malloc(ret.size);
