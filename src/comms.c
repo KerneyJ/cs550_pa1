@@ -81,6 +81,13 @@ int close_conn(conn_t *conn){
 	return 0;
 }
 
+inline int create_message(msg_t* msg, char* string, int type){
+	if(type > 0)
+		return createfile_msg(msg, string);
+	else
+		return createupdt_msg(msg, string, strlen(string), type);
+}
+
 int createupdt_msg(msg_t* msg, char* update_message, int len, int type){
 	msg->buf = (char*)malloc(UPDATE_MSG_SIZE * sizeof(char));
 	if(msg->buf == NULL){
