@@ -54,7 +54,7 @@ int register_as_new_user() {
 int register_dir(char* dirname) {
 	DIR *dir;
 	struct dirent *entry;
-
+	int files_registered = 0;
 	dir = opendir(dirname);
 
 	if (dir == NULL) {
@@ -64,14 +64,16 @@ int register_dir(char* dirname) {
 
 	while ((entry = readdir(dir)) != NULL) {
 		if (entry->d_type == DT_REG) {
-			if (register_file(entry->d_name)) {
-				return 1; //error registering file
-			};
+			if (register_file(entry->d_name) < 0) {
+				closedir(dir);
+				return -1; //error registering file
+			}
+			files_registered++;
 		}
 	}
 
 	closedir(dir);
-	return 0;
+	return files_registered;
 }
 
 //Sends a file to a host. Expects an ip address char array of the receiving host, and a name of file char array of the file to be sent. Returns 0 if successful.
