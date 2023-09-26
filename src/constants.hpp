@@ -1,3 +1,3 @@
 #define INDEX_SERVER_IP "127.0.0.1"
 #define INDEX_SERVER_PORT 8080
-#define SHARED_FILE_DIR "data"
+#define SHARED_FILE_DIR "./data"
