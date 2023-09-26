@@ -45,7 +45,7 @@ int launch_CLI() {
 			printf("\nRegistering files with the server...");
 			int files_registered = register_dir(SHARED_FILE_DIR);
 			if (files_registered <0) {
-				printf("Error registering files.")
+				printf("Error registering files.");
 			}
 			else {
 				printf("✅  %d filenames sent to server for registration", files_registered);
