@@ -1,9 +1,12 @@
-#include "comms.h"
 #include <unordered_map>
 #include <mutex>
 #include <string>
 #include <utility>
 #include <vector>
+
+extern "C" {
+    #include "comms.h"
+}
 
 class FileIndex {
     private:

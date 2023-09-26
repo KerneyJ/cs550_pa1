@@ -1,12 +1,14 @@
-#include <bits/types/FILE.h>
+#include <signal.h>
 #include <cstddef>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <filesystem>
 #include <mutex>
+#include <set>
 #include "file_index.hpp"
 #include "thread_pool.hpp"
+#include "server.hpp"
 
 extern "C" {
 	#include "comms.h"
