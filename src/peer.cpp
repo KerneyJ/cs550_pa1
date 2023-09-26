@@ -111,11 +111,26 @@ int replicate_file(char* ip, char* filename) {
 }
 
 //Searches for a file on the index server. Expects a filename. Returns the ip address of a host who owns the file if found.
-char* search_for_file(char* filename) {
-	//TODO
-	//Send a msg_t to index_server with msg_type == -2, and buf==filename.
-	//Then if the file exists, return the ip address of the host who has the file.
-	send_msg_wrapper(index_server_ip, SEARCH_INDEX, filename);
+conn_t search_for_file(char* filename) {
+	
+	msg_t message;
+	conn_t connection;
+	msg_t reply;
+	create_message(&message, filename, SEARCH_INDEX);
+	clntinit_conn(&connection,INDEX_SERVER_IP, INDEX_SERVER_PORT);
+	send_msg(message, connection);
+	delete_msg(&message);
+	reply = recv_msg(connection);
+	if (reply.type == STATUS_BAD) {
+		return {-1,-1,-1}; //Sorry no Dave Grohl.
+	}
+	//Otherwise the file exists.
+	int *reply_data = (int*)reply.buf;
+	int host_ip = reply_data[0];
+	int host_port = reply_data[1];
+	delete_msg(&reply);
+
+	return {host_ip, host_port, 0};
 }
 
 //Download a file. Expects filename. Asks index server for ip address of host with file. Then asks host for the file. Returns 0 if successful.

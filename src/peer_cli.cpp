@@ -50,6 +50,16 @@ int launch_CLI() {
 		}
 		else if (user_input == 3) {
 			printf("Searching for a file on the server...\n");
+			//read in the filename from user
+			char *filename = "hithereimafile"; //TODO
+			conn_t reply = search_for_file(filename);
+			if (reply.addr == -1) {
+				printf("file doesn't exist.");
+			}
+			else {
+				printf("File found on host at IP {%d}, port {%d}", reply.addr, reply.port);
+			}
+			
 		}
 		else if (user_input ==4) {
 			printf("Requesting a file to download...\n");
