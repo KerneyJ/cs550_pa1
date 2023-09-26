@@ -24,7 +24,7 @@ static void set_stop_flag(int signum) {
 
 void message_handler(conn_t client_conn, msg_t msg) {
 	unsigned char* ip = (unsigned char*) &client_conn.addr;
-	printf("Doing stuff with my new connection: %d.%d.%d.%d:%d\n", ip[0], ip[1], ip[2], ip[3], client_conn.port);
+	printf("Received a message of type %d\n", msg.type);
 
 	if (IS_FILE_MSG(msg.type)) {
 		send_file(client_conn, msg);
@@ -40,12 +40,13 @@ int main(int argc, char** argv) {
     char *ip = "127.0.0.1";
     int port = 8081;
 
-	register_as_new_user();
+	// register_as_new_user();
 
     if(servinit_conn(&server_conn, ip, port) < 0) {
 		printf("Failed to initialize server, shutting down.\n");
 		return -1;
 	}
+	printf("ip=%d, port=%d\n", server_conn.addr, server_conn.port);
 
 	if(servlstn_conn(&server_conn, 5)) {
 		printf("Failed to start listening, shutting down.\n");

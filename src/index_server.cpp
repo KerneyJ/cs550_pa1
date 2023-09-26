@@ -95,6 +95,9 @@ void register_file(conn_t client, msg_t message) {
 
 	file_index.add_peer(filename, client);
 
+	printf("registered client (%d, %d) with file %s. total for file: %d\n", 
+		client.addr, client.port, filename.data(), file_index.count_peers(filename));
+
 	// if(file_index.count_peers(filename) < REPLICATION_FACTOR) {
 	// 	request_replication(filename);
 

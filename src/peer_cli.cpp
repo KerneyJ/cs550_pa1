@@ -74,7 +74,7 @@ int launch_CLI() {
 			}
 			
 		}
-		else if (user_input ==4) {
+		else if (user_input == 4) {
 			printf("Requesting a file to download...\n");
 			printf("📦 Enter the file you'd like to download: ");
 			scanf("%s", &search_filename);
@@ -83,9 +83,8 @@ int launch_CLI() {
 				printf("file named {%s} doesn't exist.", search_filename);
 			}
 			else {
-				printf("File found on host at IP {%d}, port {%d}... Downloading...", reply.addr, reply.port);
-				//TODO: Request file from peer!
-
+				printf("File found on host at IP {%d}, port {%d}... Downloading...\n", reply.addr, reply.port);
+				request_file_from_peer(reply, search_filename);
 			}
 
 		}

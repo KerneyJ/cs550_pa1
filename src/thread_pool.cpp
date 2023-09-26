@@ -1,3 +1,5 @@
+#include <cstddef>
+#include <memory>
 #include <signal.h>
 #include <condition_variable>
 #include <functional>
@@ -20,7 +22,7 @@ ThreadPool::ThreadPool() {
     }
 }
 
-void ThreadPool::queue_job(std::function<void()> job) {
+void ThreadPool::queue_job(std::function<void()>* job) {
     printf("Adding job to threadpool queue.\n");
 
     queue_lock.lock();
@@ -43,23 +45,23 @@ void ThreadPool::teardown() {
 }
 
 void ThreadPool::thread_loop() {
-    std::function<void()> job;
+    std::function<void()>* job;
 
     while(true) {
-        std::unique_lock work_lock(queue_lock);
-        notify_work.wait(work_lock, [this]{ 
-            return !work_queue.empty() || interrupt;
-        });
+        {
+            std::unique_lock work_lock(queue_lock);
+            notify_work.wait(work_lock, [this]{ 
+                return !work_queue.empty() || interrupt;
+            });
 
-        if(interrupt) {
-            work_lock.unlock();
-            return;
+            if(interrupt)
+                return;
+
+            job = work_queue.front();
+            work_queue.pop();
         }
 
-        job = work_queue.front();
-        work_queue.pop();
-        work_lock.unlock();
-
-        job();
+        (*job)();
+        delete *job;
     }
 }
