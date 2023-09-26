@@ -91,9 +91,12 @@ void register_user(conn_t client, msg_t message) {
 }
 
 void register_file(conn_t client, msg_t message) {
-	std::string filename = message.buf;
+	printf("registering file\n", peers.size());
+	std::string filename(message.buf);
+	printf("filename: %s\n", filename.data());
 
 	file_index.add_peer(filename, client);
+	printf("Added peer, num_peers = %lu\n", peers.size());
 
 	if(file_index.count_peers(filename) < REPLICATION_FACTOR) {
 		request_replication(filename);

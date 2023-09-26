@@ -26,14 +26,13 @@ void message_handler(conn_t client_conn, msg_t msg) {
 	unsigned char* ip = (unsigned char*) &client_conn.addr;
 	printf("Doing stuff with my new connection: %d.%d.%d.%d:%d\n", ip[0], ip[1], ip[2], ip[3], client_conn.port);
 
-	//r u sending a file bro?
-	// if (IS_FILE_MSG(msg.type)) {
-	// 	send_file(client_conn, msg);
-	// }
-	// else if (msg.type == REPLICATION_REQ) {
-	// 	replicate_file(client_conn, msg);
-	// 	}
+	if (IS_FILE_MSG(msg.type)) {
+		send_file(client_conn, msg);
+	} else if (msg.type == REPLICATION_REQ) {
+		replicate_file(client_conn, msg);
+	}
 }
+
 //Main server loop. Initiated from CLI. 
 int main(int argc, char** argv) {
     signal(SIGINT, set_stop_flag);

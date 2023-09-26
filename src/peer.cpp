@@ -83,31 +83,42 @@ int register_dir(char* dirname) {
 }
 
 //Sends a file to a host. Expects an ip address char array of the receiving host, and a name of file char array of the file to be sent. Returns 0 if successful.
-int send_file(char* ip, char* filename) {
-	//TODO
-
+int send_file(conn_t client_conn, msg_t message) {
 	//This is called when the host server receives a msg_t with msg_type == REQUEST_FILE.
 	//The host then sends the message to the IP address of the host requesting the file by using the comms.c interface. 
-	msg_type msg_status = send_msg_wrapper(ip, FILE_MSG, filename);
-	if (msg_status == -7) {
-		return 1; //Message error
+	msg_t file_message;
+	char* path;
+	
+	sprintf(path, "%s/%s", SHARED_FILE_DIR, message.buf);
+
+	if(!createfile_msg(&file_message, path)) {
+		msg_t err_msg;
+		create_message(&err_msg, "", STATUS_BAD);
+		send_msg(err_msg, client_conn);
+		delete_msg(&err_msg);
+		return -1;
 	}
+
+	send_msg(file_message, client_conn);
+	delete_msg(&file_message);
+
 	return 0;
 }
 
 //Request a file from peer, given the ip address of the peer who has the file and the name of the file being requested.
-int request_file_from_peer(char* ip, char* filename) {
+int request_file_from_peer(conn_t, char* filename) {
 	//TODO
 	//Send a msg_t to the ip of the file owner host with msg_type == -3 and buf == filename.
 	//If the host responds by sending you the file, save the file to disk at local_shared_dir.
 	//optional: If the host does not respond, query the index_server for an alternative host until there are no more hosts left to try or you download the file successfuly.
-	send_msg_wrapper(ip, REQUEST_FILE, filename);
+	// send_msg_wrapper(ip, REQUEST_FILE, filename);
+
+	return 0;
 }
 
 //expects the ip address of the host who has the file (char*), and the name of the file to replicate (char*). Returns 0 if successful.
-int replicate_file(char* ip, char* filename) {
-	//TODO
-	return request_file_from_peer(ip, filename);
+int replicate_file(conn_t client_conn, msg_t message) {
+	return request_file_from_peer(client_conn, message.buf);
 }
 
 //Searches for a file on the index server. Expects a filename. Returns the ip address of a host who owns the file if found.
