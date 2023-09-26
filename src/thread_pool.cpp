@@ -1,4 +1,4 @@
-#include <bits/types/sig_atomic_t.h>
+#include <signal.h>
 #include <condition_variable>
 #include <functional>
 #include <unistd.h>

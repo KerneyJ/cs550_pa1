@@ -1,10 +1,9 @@
 
-#include <bits/types/sig_atomic_t.h>
+#include <signal.h>
 #include <cstdio>
 #include <thread>
 #include <vector>
 #include "server.hpp"
-#include "thread_pool.hpp"
 
 void connection_handler(conn_t client_conn, void message_handler(conn_t, msg_t)) {
     msg_t msg;
@@ -15,22 +14,36 @@ void connection_handler(conn_t client_conn, void message_handler(conn_t, msg_t))
 	close_conn(&client_conn);
 }
 
-void servloop_conn(conn_t* server_conn, void (*message_handler)(conn_t, msg_t), volatile sig_atomic_t* interrupt) {
+void main_server_loop(ThreadPool* threadpool, conn_t* server_conn, void (*message_handler)(conn_t, msg_t), volatile sig_atomic_t* interrupt) {
     conn_t client_conn;
 
-    ThreadPool threadpool = ThreadPool();
-
     while(!(*interrupt)) {
+        // TODO: error handling
         client_conn = servacpt_conn(server_conn);
 
-		if(client_conn.addr == -1)
-			continue;
+        if(client_conn.addr == -1)
+            continue;
 
-        threadpool.queue_job([client_conn, message_handler] {
+        threadpool->queue_job([client_conn, message_handler] {
             connection_handler(client_conn, message_handler);
         });
-		// std::thread(connection_handler, client_conn, message_handler).detach();
     }
+}
+
+void servloop_conn(ThreadPool* threadpool, conn_t* server_conn, void (*message_handler)(conn_t, msg_t), volatile sig_atomic_t* interrupt, bool blocking) {
+    if(blocking) {
+        main_server_loop(threadpool, server_conn, message_handler, interrupt);
+    } else {
+        threadpool->queue_job([threadpool, server_conn, message_handler, interrupt] {
+            main_server_loop(threadpool, server_conn, message_handler, interrupt);
+        });
+    }
+}
+
+void servloop_conn(conn_t* server_conn, void (*message_handler)(conn_t, msg_t), volatile sig_atomic_t* interrupt) {
+    ThreadPool threadpool = ThreadPool();
+
+    servloop_conn(&threadpool, server_conn, message_handler, interrupt);
 
     threadpool.teardown();
 }

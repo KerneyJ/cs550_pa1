@@ -9,7 +9,7 @@ PEER=peer.cpp
 IDXSVR=index_server.cpp
 TEST=test.c
 C_SRCS=comms.c
-CPP_SRCS=server.cpp thread_pool.cpp
+CPP_SRCS=server.cpp thread_pool.cpp file_index.cpp
 C_OBJS=$(C_SRCS:.c=.o)
 CPP_OBJS=$(CPP_SRCS:.cpp=.o)
 
