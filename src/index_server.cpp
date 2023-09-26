@@ -26,6 +26,14 @@ static msg_t create_replication_msg(std::string filename, conn_t peer);
 static volatile sig_atomic_t stop;
 static conn_t server_conn;
 
+static FileIndex file_index;
+
+static std::vector<conn_t> peers;
+static std::mutex peer_lock;
+
+static std::set<std::string> replication_waitlist;
+static std::mutex waitlist_lock;
+
 static void set_stop_flag(int signum) {
 	printf("Catching SIGINT!\n");
     stop = 1;
@@ -55,6 +63,8 @@ int main(int argc, char** argv) {
     char *ip = INDEX_SERVER_IP;
     int port = INDEX_SERVER_PORT;
 
+	file_index.add_peer("davegrohl", {420, 69, 0});
+
     if(servinit_conn(&server_conn, ip, port) < 0) {
 		printf("Failed to initialize server, shutting down.\n");
 		return -1;
@@ -72,14 +82,6 @@ int main(int argc, char** argv) {
 
 	return 0;
 }
-
-FileIndex file_index;
-
-std::vector<conn_t> peers;
-std::mutex peer_lock;
-
-std::set<std::string> replication_waitlist;
-std::mutex waitlist_lock;
 
 void register_user(conn_t client, msg_t message) {
 	std::unique_lock<std::mutex> lock(peer_lock);
@@ -113,15 +115,13 @@ void search_index(conn_t client, msg_t message) {
 	msg_t res;
 	std::string filename = message.buf;
 
-	file_index.add_peer("davegrohl", {420, 69, 0});
-
 	conn_t peer = file_index.get_rand_peer(filename);
 
 	if(peer.addr == -1) {
 		create_message(&res, "", STATUS_BAD);
 	} else {
 		int peer_data[2] = {peer.addr, peer.port};
-		create_message(&res, (char*) peer_data, STATUS_OK);
+		createupdt_msg(&res, (char*) peer_data, sizeof(int) * 2, STATUS_OK);
 	}
 
 	send_msg(res, client);
