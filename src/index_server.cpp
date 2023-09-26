@@ -17,21 +17,22 @@ extern "C" {
 
 #define REPLICATION_FACTOR 2
 
-void register_user(conn_t client, msg_t message);
-void register_file(conn_t client, msg_t message);
-void search_index(conn_t client, msg_t message);
-void request_replication(std::string filename);
+static void register_user(conn_t client, msg_t message);
+static void register_file(conn_t client, msg_t message);
+static void search_index(conn_t client, msg_t message);
+static void request_replication(std::string filename);
+static msg_t create_replication_msg(std::string filename, conn_t peer);
 
 volatile sig_atomic_t stop;
 conn_t server_conn;
 
-void set_stop_flag(int signum) {
+static void set_stop_flag(int signum) {
 	printf("Catching SIGINT!\n");
     stop = 1;
 	close_conn(&server_conn); // exits blocking accept() calls
 }
 
-void message_handler(conn_t client_conn, msg_t msg) {
+static void message_handler(conn_t client_conn, msg_t msg) {
 	unsigned char* ip = (unsigned char*) &client_conn.addr;
 	printf("Doing stuff with my new connection: %d.%d.%d.%d:%d\n", ip[0], ip[1], ip[2], ip[3], client_conn.port);
 
