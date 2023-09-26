@@ -7,17 +7,11 @@ mkdir kilo
 mkdir mega
 mkdir giga
 
-for i in {1..1000000}
-do
-	dd if=/dev/urandom of=./kilo/$(printf "%07d" $i).data bs=1K count=1
-done
+python3 cpmega.py
+python3 cpkilo.py
 
-for i in {1..1000}
+exit
+for i in {0..9}
 do
-	dd if=/dev/urandom of=./kilo/$(printf "%04d" $i).data bs=1M count=1
-done
-
-for i in {1..10}
-do
-	dd if=/dev/urandom of=./kilo/$(printf "%02d" $i).data bs=1G count=1
+	dd if=/dev/urandom of=./giga/$i.data bs=1G count=1
 done
