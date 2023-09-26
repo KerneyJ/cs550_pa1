@@ -89,7 +89,9 @@ int launch_CLI() {
 			// }
 			conn_t reply = {16777343, 8081, 0};//search_for_file(search_filename);
 			char filename[] = "nice_file_to_have";
-			request_file_from_peer(reply, filename);
+			int result = request_file_from_peer(reply, filename);
+			printf("Result: %d", result);
+
 		}
 	}
 	return 0;
