@@ -13,7 +13,10 @@ Running a server loop with server.cpp
 #include "comms.h"
 #include "thread_pool.hpp"
 #include <stdio.h>
+#include "comms.h"
+#include <stdlib.h>
 #include <dirent.h>
+#include <string.h> 
 
 #define IP_LENGTH 24
 #define MAX_DIR_NAME_SIZE 1024
