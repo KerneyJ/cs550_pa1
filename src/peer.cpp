@@ -85,7 +85,7 @@ int send_file(conn_t client_conn, msg_t message) {
 	
 	sprintf(path, "%s/%s", SHARED_FILE_DIR, message.buf);
 
-	if(!createfile_msg(&file_message, path)) {
+	if(createfile_msg(&file_message, path) < 0) {
 		msg_t err_msg;
 		create_message(&err_msg, "", STATUS_BAD);
 		send_msg(err_msg, client_conn);
