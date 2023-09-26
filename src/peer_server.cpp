@@ -26,11 +26,12 @@ void message_handler(conn_t client_conn, msg_t msg) {
 	unsigned char* ip = (unsigned char*) &client_conn.addr;
 	printf("Received a message of type %d\n", msg.type);
 
-	if (IS_FILE_MSG(msg.type)) {
+	if (msg.type == REQUEST_FILE) {
 		send_file(client_conn, msg);
 	} else if (msg.type == REPLICATION_REQ) {
 		replicate_file(client_conn, msg);
 	}
+	// else if (msg.type == REQUEST_FILE) 
 }
 
 //Main server loop. Initiated from CLI. 
