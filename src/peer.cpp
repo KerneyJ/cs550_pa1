@@ -98,12 +98,44 @@ int send_file(conn_t client_conn, msg_t message) {
 }
 
 //Request a file from peer, given the ip address of the peer who has the file and the name of the file being requested.
-int request_file_from_peer(conn_t, char* filename) {
+int request_file_from_peer(conn_t peer, char* filename) {
 	//TODO
 	//Send a msg_t to the ip of the file owner host with msg_type == -3 and buf == filename.
 	//If the host responds by sending you the file, save the file to disk at local_shared_dir.
 	//optional: If the host does not respond, query the index_server for an alternative host until there are no more hosts left to try or you download the file successfuly.
-	// send_msg_wrapper(ip, REQUEST_FILE, filename);
+	conn_t client_conn;
+	msg_t req, res;
+
+	// temp solution
+	char* ip_str;
+	unsigned char* ip = (unsigned char*) &peer.addr;
+	sprintf(ip_str, "%d.%d.%d.%d", ip[0], ip[1], ip[2], ip[3]);
+	clntinit_conn(&client_conn, ip_str, peer.port);
+	
+	// clntinit_conn(&client_conn, &peer); // Jamie todo
+	create_message(&req, filename, REQUEST_FILE);
+	send_msg(req, peer);
+	delete_msg(&res);
+
+	res = recv_msg(peer);
+
+	if(res.type == NULL_MSG) {
+		close_conn(&client_conn);
+		perror("Message failed to  receive.\n");
+		return -1;
+	}
+
+	if(res.type == STATUS_BAD) {
+		close_conn(&client_conn);
+		perror("Peer did not have requested file.\n");
+		return -1;
+	}
+
+	close_conn(&client_conn);
+	delete_msg(&res);
+
+	//TODO: register file after receiving.
+	// register_file(filename);
 
 	return 0;
 }
