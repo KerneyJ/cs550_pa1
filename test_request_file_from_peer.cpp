@@ -32,6 +32,8 @@ int main(int argc, char const *argv[])
     send_msg(message, conn); 
     
     reply = recv_msg(conn); 
+    int result = reply.type;
+    printf("result: %d", result);
     delete_msg(&message);
     close_conn(&conn);
 
