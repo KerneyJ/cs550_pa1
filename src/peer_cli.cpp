@@ -74,19 +74,22 @@ int launch_CLI() {
 			}
 			
 		}
-		else if (user_input == 4) {
-			printf("Requesting a file to download...\n");
-			printf("📦 Enter the file you'd like to download: ");
-			scanf("%s", &search_filename);
-			conn_t reply = search_for_file(search_filename);
-			if (reply.addr == -1) {
-				printf("file named {%s} doesn't exist.", search_filename);
-			}
-			else {
-				printf("File found on host at IP {%d}, port {%d}... Downloading...\n", reply.addr, reply.port);
-				request_file_from_peer(reply, search_filename);
-			}
+		else if (user_input ==4) {
+			// printf("Requesting a file to download...\n");
+			// printf("📦 Enter the file you'd like to download: ");
+			// scanf("%s", &search_filename);
+			// conn_t reply = search_for_file(search_filename);
+			// if (reply.addr == -1) {
+			// 	printf("file named {%s} doesn't exist.", search_filename);
+			// }
+			// else {
+			// 	printf("File found on host at IP {%d}, port {%d}... Downloading...", reply.addr, reply.port);
+			// 	//TODO: Request file from peer!
 
+			// }
+			conn_t reply = {16777343, 8081, 0};//search_for_file(search_filename);
+			char filename[] = "nice_file_to_have";
+			request_file_from_peer(reply, filename);
 		}
 	}
 	return 0;
