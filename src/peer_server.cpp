@@ -27,6 +27,7 @@ void message_handler(conn_t client_conn, msg_t msg) {
 	printf("Received a message of type %d\n", msg.type);
 
 	if (msg.type == REQUEST_FILE) {
+		printf("WOOOOOOOOOBABYYYYYYYYY👶");
 		send_file(client_conn, msg);
 	} else if (msg.type == REPLICATION_REQ) {
 		replicate_file(client_conn, msg);
