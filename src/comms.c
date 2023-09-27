@@ -142,7 +142,6 @@ int createfile_msg(msg_t* msg, char* path){
 	msg->type = fd;
 	msg->size = s.st_size;
 	msg->buf = (char*)mmap(NULL, msg->size, PROT_READ, MAP_SHARED, fd, 0);
-	printf("🍪🍪🍪🍪\n");
 	if(msg->buf == MAP_FAILED){
 		perror("[-]MMAP error while creating file message");
 		return -1;
@@ -150,6 +149,7 @@ int createfile_msg(msg_t* msg, char* path){
 #ifdef DEBUG
 	printf("[+]Successfully created a file message\n");
 #endif
+	printf("🎂🎂🎂\n");
 	return 0;
 }
 
