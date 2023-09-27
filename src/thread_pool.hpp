@@ -17,7 +17,7 @@ class ThreadPool {
         std::condition_variable notify_work;
         void thread_loop();
     public:
-        ThreadPool();
+        ThreadPool(int num_threads = -1);
         void queue_job(std::function<void()>);
         void teardown();
 };

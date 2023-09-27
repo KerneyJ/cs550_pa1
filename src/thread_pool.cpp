@@ -9,11 +9,11 @@
 #include <cstdio>
 #include "thread_pool.hpp"
 
-ThreadPool::ThreadPool() {
-    int i, num_threads;
+ThreadPool::ThreadPool(int num_threads) {
+    int i;
 
     interrupt = false;
-    num_threads = std::thread::hardware_concurrency(); 
+    num_threads = num_threads > 0 ? num_threads : std::thread::hardware_concurrency(); 
 #ifdef DEBUG
     printf("Creating %d threads\n", num_threads);
 #endif
