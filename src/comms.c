@@ -406,9 +406,10 @@ static msg_t recvfile_msg(conn_t conn, msg_t ret, int bytesread, char* prb){
 
 }
 
-static msg_t recvupdt_msg(conn_t conn, msg_t ret, int bytesread){
+static msg_t recvupdt_msg(conn_t conn, msg_t ret, int bytesread, char* prv){
 	int errint = 0, headersize = sizeof(size_t) + sizeof(int), bytesleft;
 	char recvbuf[SENDSIZE], *bufpos;
+	memcpy(recvbuf,prv, SENDSIZE);
 	if(ret.size == 0){
 		ret.buf = NULL;
 		errint |= TUEMT;
@@ -470,6 +471,6 @@ msg_t recv_msg(conn_t conn){
 		return recvfile_msg(conn, ret, bytesread, recvbuf);
 	}
 	else{
-		return recvupdt_msg(conn, ret, bytesread);
+		return recvupdt_msg(conn, ret, bytesread, recvbuf);
 	}
 }
