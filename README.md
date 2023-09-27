@@ -1,6 +1,13 @@
 # P2P File sharing service
 
-To build and run.
+###Description
+P2P file service implemented as a class project for IIT CS550, Advanced OS (Distributed Systems).
+
+Allows peers to request and send files to each other over a network and query an index server to search for avialable files.
+Supports data resilience by replicating files among multiple peers. Number of replications can be configured system-wide on the index server.
+
+
+### Instructions to build and run
 
 1. Clone the repository by running `git clone https://github.com/KerneyJ/cs550_pa1`
 2. Run `mkdir ./bin ./data`
