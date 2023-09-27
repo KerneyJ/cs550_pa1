@@ -88,8 +88,8 @@ int send_file(conn_t client_conn, msg_t message) {
 	printf("✅✅✅path: %s\n", path);
 	for (int i = 0; i < message.size; i++)
 	{
-		printf("%c", message.buf[i]);
-		fflush0;
+		printf("%i ", message.buf[i]);
+		fflush(0);
 	}
 	
 
