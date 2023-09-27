@@ -20,7 +20,7 @@ extern "C" {
 static void register_user(conn_t client, msg_t message);
 static void register_file(conn_t client, msg_t message);
 static void search_index(conn_t client, msg_t message);
-static void request_replication(std::string filename);
+static void request_replication(conn_t peer_with_file, std::string filename, int replications_left);
 static msg_t create_replication_msg(std::string filename, conn_t peer);
 
 static volatile sig_atomic_t stop;
@@ -30,9 +30,6 @@ static FileIndex file_index;
 
 static std::vector<conn_t> peers;
 static std::mutex peer_lock;
-
-static std::set<std::string> replication_waitlist;
-static std::mutex waitlist_lock;
 
 static void set_stop_flag(int signum) {
 	printf("Catching SIGINT!\n");
@@ -89,10 +86,18 @@ static std::string buf_to_string(char* buffer, size_t len) {
 }
 
 void register_user(conn_t client, msg_t message) {
-	std::unique_lock<std::mutex> lock(peer_lock);
-	peers.push_back(client);
+	conn_t peer_server;
 
-	printf("Added peer, num_peers = %lu\n", peers.size());
+	int *data = (int*)message.buf;
+	peer_server.addr = data[0];
+	peer_server.port = data[1];
+
+	std::unique_lock<std::mutex> lock(peer_lock);
+	peers.push_back(peer_server);
+
+#ifdef DEBUG
+	printf("Added peer (%d, %d), num_peers = %lu\n", peer_server.addr, peer_server.port, peers.size());
+#endif
 }
 
 void register_file(conn_t client, msg_t message) {
@@ -108,25 +113,14 @@ void register_file(conn_t client, msg_t message) {
 
 	std::string filename = buf_to_string(message.buf + sizeof(int)*2, message.size - sizeof(int)*2);
 
-	file_index.add_peer(filename, peer_server);
+	int num_peers = file_index.add_peer(filename, peer_server);
 
 	printf("Registered peer (%d, %d) with file %s. Total peers with file: %d\n", 
-		peer_server.addr, peer_server.port, filename.data(), file_index.count_peers(filename));
+		peer_server.addr, peer_server.port, filename.data(), num_peers);
 
-	// if(file_index.count_peers(filename) < REPLICATION_FACTOR) {
-	// 	request_replication(filename);
-
-	// 	std::unique_lock<std::mutex> lock(waitlist_lock);
-	// 	{
-	// 		replication_waitlist.insert(filename);
-	// 	}
-	// } else {
-	// 	std::unique_lock<std::mutex> lock(waitlist_lock);
-	// 	{
-	// 		if(replication_waitlist.find(filename) != replication_waitlist.end())
-	// 			replication_waitlist.erase(filename);
-	// 	}
-	// }
+	if(num_peers < REPLICATION_FACTOR) {
+		request_replication(peer_server, filename, REPLICATION_FACTOR - num_peers);
+	}
 }
 
 void search_index(conn_t client, msg_t message) {
@@ -150,56 +144,67 @@ void search_index(conn_t client, msg_t message) {
 	delete_msg(&res);
 }
 
-// std::vector<conn_t> find_replication_peers(std::string filename) {
-// 	std::vector<conn_t> valid_peers;
-// 	conn_t valid_peer;
-// 	uint peer_idx, start_idx;
-// 	peer_idx = start_idx = rand() % peers.size();
+std::vector<conn_t> find_replication_peers(std::string filename, int num_peers) {
+	std::vector<conn_t> valid_peers;
+	conn_t valid_peer;
+	uint peer_idx, start_idx;
+	peer_idx = start_idx = rand() % peers.size();
 
-// 	std::unique_lock<std::mutex> lock(peer_lock);
-// 	// attempt to find enough peers without this file to replicate to
-// 	for (uint i = 0; i < REPLICATION_FACTOR - file_index->count_peers(filename); i++) {
-// 		do {
-// 			valid_peer = peers.at(peer_idx);
-// 			peer_idx++;
+	// if no more peers are joining, we could get away with removing this lock
+	std::unique_lock<std::mutex> lock(peer_lock);
+	// attempt to find enough peers without this file to replicate to
+	for (uint i = 0; i < num_peers; i++) {
+		do {
+			valid_peer = peers.at(peer_idx);
+			peer_idx = (peer_idx + 1) % peers.size();
 
-// 			// we've tried every peer, just use the ones that we've found
-// 			if(peer_idx == start_idx) {
-// 				valid_peer = {-1, -1, -1};
-// 				break;
-// 			}
-// 		} while(file_index->contains_peer(filename, valid_peer));
+			// we've tried every peer, just use the ones that we've found
+			if(peer_idx == start_idx) {
+				valid_peer = {-1, -1, -1};
+				break;
+			}
+		} while(file_index.contains_peer(filename, valid_peer));
 
-// 		if(valid_peer.addr < 0)
-// 			break;
+		if(valid_peer.addr < 0)
+			break;
 
-// 		valid_peers.push_back(valid_peer);
-// 	}
+		valid_peers.push_back(valid_peer);
+	}
 
-// 	return valid_peers;
-// }
+	return valid_peers;
+}
 
-// msg_t create_replication_msg(std::string filename, conn_t peer) {
-// 	size_t msg_size = sizeof(int) * 2 + sizeof(filename);
-// 	char* msg_buffer = (char*) malloc(msg_size);
-// 	msg_buffer[0] = peer.addr;
-// 	msg_buffer[sizeof(int)] = peer.port;
-// 	memcpy(msg_buffer + sizeof(int) * 2, filename.data(), sizeof(filename));
+msg_t create_replication_msg(std::string filename, conn_t peer) {
+	msg_t message;
+	int *ibuffer;
 
-// 	return { msg_buffer, msg_size, REPLICATION_REQ };
-// }
+	message.buf = (char*) malloc(sizeof(int)*2 + filename.size());
+	ibuffer = (int*) message.buf;  
+	ibuffer[0] = peer.addr;
+	ibuffer[1] = peer.port;
+	memcpy(message.buf + sizeof(int)*2, filename.data(), filename.size());
 
-// void request_replication(std::string filename) {
-// 	msg_t message;
-// 	auto valid_peers = find_replication_peers(filename);
+	printf("created message with filename {%s} \n", message.buf + sizeof(int)*2);
 
-// 	for(auto peer : valid_peers) {
-// 		auto peer_with_file = file_index->get_rand_peer(filename);
+	message.size = sizeof(int)*2 + filename.size();
+	message.type = REPLICATION_REQ;
 
-// 		message = create_replication_msg(filename, peer);
+	return message;
+}
 
-// 		send_msg(message, peer_with_file);
+void request_replication(conn_t peer_with_file, std::string filename, int replications_left) {
+	conn_t client;
+	msg_t message;
+	auto valid_peers = find_replication_peers(filename, replications_left);
 
-// 		delete_msg(&message);
-// 	}
-// }
+	message = create_replication_msg(filename, peer_with_file);
+	for(auto peer : valid_peers) {
+#ifdef DEBUG
+		printf("Sending replication message to peer (%d, %d)\n", peer.addr, peer.port);
+#endif
+		clntinitco_conn(&client, &peer);
+		send_msg(message, client);
+		close_conn(&client);
+	}
+	delete_msg(&message);
+}

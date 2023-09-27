@@ -19,6 +19,7 @@ CPP_OBJS=$(CPP_SRCS:.cpp=.o)
 
 ifeq ($(DEBUG),true)
     CFLAGS := -D DEBUG
+    CPP_FLAGS := -D DEBUG
 endif
 
 all: $(PEER_CLI) $(PEER_SERVER) $(IDXSVR)

@@ -13,7 +13,6 @@ int launch_CLI(conn_t peer_server) {
 	int user_input;
 	char file_to_register[MAX_DIR_NAME_SIZE];
 	
-
 	//Welcome
 	printf("\n-------------------------------------------------\n");
 	printf("Howdy partner 🤠, ready to pirate some 💿💿💿?");

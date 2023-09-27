@@ -12,6 +12,7 @@ Running a server loop with server.cpp
 #include "peer.hpp" // includes stdlib.h string.h
 #include "comms.h"
 #include "thread_pool.hpp"
+#include <cstring>
 #include <stdio.h>
 #include "comms.h"
 #include <stdlib.h>
@@ -22,15 +23,13 @@ Running a server loop with server.cpp
 #define IP_LENGTH 24
 #define MAX_DIR_NAME_SIZE 1024
 
-char index_server_ip[IP_LENGTH];
-char local_shared_dir[MAX_DIR_NAME_SIZE];
-
 //Connect as new user. Conect to index server (which will get my ip) and register_dir(directory).
-int register_as_new_user() {
+int register_as_new_user(conn_t server_conn) {
 	msg_t message;
 	conn_t client;
 
-	create_message(&message, "", NEW_USER);
+	int buffer[2] = {server_conn.addr, server_conn.port};
+	createupdt_msg(&message, (char*) buffer, sizeof(int) * 2, NEW_USER);
 
 	clntinit_conn(&client, INDEX_SERVER_IP, INDEX_SERVER_PORT);
 	send_msg(message, client);
@@ -40,9 +39,6 @@ int register_as_new_user() {
 
 	return 0;
 }
-
-
-
 
 /*Registers all the files in a directory. Just calls register file for every file in dir*/
 int register_dir(conn_t peer_server, char* dirname) {
@@ -77,7 +73,14 @@ int send_file(conn_t client_conn, msg_t message) {
 	msg_t file_message;
 	char path[256] = {0};
 	
+	printf("pre:  message.buf=%s\n", message.buf);
+	message.buf[message.size+1] = '\0';
+	printf("post: message.buf=%s\n", message.buf);
+
 	sprintf(path, "%s/%s", SHARED_FILE_DIR, message.buf);
+
+	memcpy(path, SHARED_FILE_DIR, strlen(SHARED_FILE_DIR));
+	memcpy(path + strlen(SHARED_FILE_DIR) + 1, message.buf, message.size);
 
 	if (createfile_msg(&file_message, path) < 0) {
 		msg_t err_msg;
@@ -132,7 +135,25 @@ int request_file_from_peer(conn_t peer, char* filename) {
 
 //expects the ip address of the host who has the file (char*), and the name of the file to replicate (char*). Returns 0 if successful.
 int replicate_file(conn_t client_conn, msg_t message) {
-	if(request_file_from_peer(client_conn, message.buf) < 1) {
+	conn_t peer_server;
+	char filename[256] = {0};
+
+	int* ibuffer = (int*) message.buf;
+	if(ibuffer[0] >= 0) {
+		peer_server.addr = ibuffer[0];
+		peer_server.port = ibuffer[1];
+	}
+
+	memcpy(filename, message.buf + sizeof(int)*2, message.size - sizeof(int)*2);
+
+	for(int i = 0; i < message.size; i++)
+		printf("%i ", message.buf[i]);
+
+#ifdef DEBUG
+	printf("Attempting to replicate file {%s}!", filename);
+#endif
+
+	if(request_file_from_peer(peer_server, filename) < 0) {
 		printf("Failed to replicate :(\n");
 		return -1;
 	}
@@ -147,7 +168,7 @@ int register_file(conn_t peer_server, char* name_of_file) {
 	conn_t connection;
 	int *ibuffer, len;
 
-	len = strlen(name_of_file); // +1 for null terminator?
+	len = strlen(name_of_file);
 
 	message.buf = (char*) malloc(sizeof(int)*2 + len);
 	ibuffer = (int*) message.buf;  

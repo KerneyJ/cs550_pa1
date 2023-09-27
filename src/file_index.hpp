@@ -14,9 +14,8 @@ class FileIndex {
         std::unordered_map<std::string, std::mutex> file_lock_map;
     public:
         FileIndex();
-        void add_peer(std::string filename, conn_t peer);
-        // returns random peer that has registered this file for load balancing
-        conn_t get_rand_peer(std::string filename);  
+        int add_peer(std::string filename, conn_t peer); // returns number of peers
+        conn_t get_rand_peer(std::string filename); // returns random peer that has registered this file for load balancing
         bool contains_peer(std::string filename, conn_t peer);  
-        uint count_peers(std::string filename);
+        int count_peers(std::string filename);
 };
