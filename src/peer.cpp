@@ -115,11 +115,11 @@ int request_file_from_peer(conn_t peer, char* filename) {
 	unsigned char* ip = (unsigned char*) &peer.addr;
 	sprintf(ip_str, "%d.%d.%d.%d", ip[0], ip[1], ip[2], ip[3]);
 	clntinit_conn(&client_conn, ip_str, peer.port);
-	printf("IN REQUEST_FILE_FROM_PEER");
 	
 	// clntinit_conn(&client_conn, &peer); // Jamie todo
 	create_message(&req, filename, REQUEST_FILE);
 	send_msg(req, peer);
+	printf("SENT MESSAGE");
 	delete_msg(&req);
 	printf("SENT DA FILE REQUEST BROOOOO");
 	res = recv_msg(client_conn);
