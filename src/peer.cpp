@@ -109,6 +109,7 @@ int request_file_from_peer(conn_t peer, char* filename) {
 	//optional: If the host does not respond, query the index_server for an alternative host until there are no more hosts left to try or you download the file successfuly.
 	conn_t client_conn;
 	msg_t req, res;
+	char test_filename[] = "nice_file_to_have"; 
 
 	// temp solution
 	char ip_str[80];
@@ -117,7 +118,7 @@ int request_file_from_peer(conn_t peer, char* filename) {
 	clntinit_conn(&client_conn, ip_str, peer.port);
 	
 	// clntinit_conn(&client_conn, &peer); // Jamie todo
-	create_message(&req, filename, REQUEST_FILE);
+	create_message(&req, test_filename, REQUEST_FILE);
 	send_msg(req, peer);
 	printf("SENT MESSAGE");
 	delete_msg(&req);
