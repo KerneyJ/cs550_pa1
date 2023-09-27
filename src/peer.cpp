@@ -82,7 +82,7 @@ int send_file(conn_t client_conn, msg_t message) {
 	//This is called when the host server receives a msg_t with msg_type == REQUEST_FILE.
 	//The host then sends the message to the IP address of the host requesting the file by using the comms.c interface. 
 	msg_t file_message;
-	char* path;
+	char path[256] = {0};
 	
 	sprintf(path, "%s/%s", SHARED_FILE_DIR, message.buf);
 
