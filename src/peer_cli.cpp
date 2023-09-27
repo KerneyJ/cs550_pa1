@@ -81,13 +81,13 @@ int launch_CLI(conn_t peer_server) {
 			}
 			else {
 				printf("File found on host at IP {%d}, port {%d}... Downloading...", reply.addr, reply.port);
-				//TODO: Request file from peer!
 
-				int result = request_file_from_peer(reply, search_filename);
-				printf("Result: %d", result);
+				if(request_file_from_peer(reply, search_filename) < 0) {
+					printf("Failed to download.\n");
+					continue;
+				}
 
 				register_file(peer_server, search_filename);
-
 			}
 		}
 	}

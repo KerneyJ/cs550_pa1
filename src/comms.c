@@ -116,6 +116,7 @@ int clntinitco_conn(conn_t* conn, conn_t* srv){
 		perror(error_string);
 		return -1;
 	}
+
 	printf("[+]Connected to Server.\n");
 	return 0;
 }
@@ -441,7 +442,7 @@ static msg_t recvupdt_msg(conn_t conn, msg_t ret, int bytesread, char* prv){
 		return ret;
 	}
 	else{
-		ret.buf = (char*)malloc(ret.size);
+		ret.buf = (char*)malloc(ret.size * sizeof(char));
 		if(ret.buf == NULL)
 			return recv_handleerror(ret, "[-]Error on malloc for update message", errint);
 		errint |= TUPDT;

@@ -25,12 +25,6 @@ Running a server loop with server.cpp
 char index_server_ip[IP_LENGTH];
 char local_shared_dir[MAX_DIR_NAME_SIZE];
 
-//Given an ip of the destination host, the msg_type, and the message content (buf), send a message using the comms.c interface.
-msg_type send_msg_wrapper(char *ip, int msg_type, char *buf) {
-	//TODO DELETE
-	return NULL_MSG;
-}
-
 //Connect as new user. Conect to index server (which will get my ip) and register_dir(directory).
 int register_as_new_user() {
 	msg_t message;
