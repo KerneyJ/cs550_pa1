@@ -423,7 +423,11 @@ static msg_t recvupdt_msg(conn_t conn, msg_t ret, int bytesread, char* prv){
 
 	bytesleft = (ret.size + headersize) - bytesread;
 	// copy bytes read after the header into ret buffer
-	memcpy(ret.buf, recvbuf+headersize, bytesread-headersize);
+	//bytesread-headersize
+	if(bytesread - headersize < ret.size)
+		memcpy(ret.buf, recvbuf+headersize, bytesread - headersize);
+	else
+		memcpy(ret.buf, recvbuf+headersize, ret.size);
 	bufpos = ret.buf + (bytesread - headersize);
 	bzero(recvbuf, SENDSIZE);
 	while(bytesleft > 0){
