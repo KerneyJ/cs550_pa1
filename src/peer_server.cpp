@@ -36,14 +36,14 @@ void message_handler(conn_t client_conn, msg_t msg) {
 
 //Main server loop. Initiated from CLI. 
 int main(int argc, char** argv) {
-    signal(SIGINT, set_stop_flag);
+	signal(SIGINT, set_stop_flag);
 
-    char *ip = "127.0.0.1";
-    int port = 8081;
+	char *ip = "127.0.0.1";
+	int port = 8081;
 
 	// register_as_new_user();
 
-    if(servinit_conn(&server_conn, ip, port) < 0) {
+	if(servinit_conn(&server_conn, ip, port) < 0) {
 		printf("Failed to initialize server, shutting down.\n");
 		return -1;
 	}
