@@ -78,6 +78,7 @@ int register_dir(char* dirname) {
 
 //Sends a file to a host. Expects an ip address char array of the receiving host, and a name of file char array of the file to be sent. Returns 0 if successful.
 int send_file(conn_t client_conn, msg_t message) {
+	printf("IN SEND_FILE 🍦🍦🍦🍦");
 	//This is called when the host server receives a msg_t with msg_type == REQUEST_FILE.
 	//The host then sends the message to the IP address of the host requesting the file by using the comms.c interface. 
 	msg_t file_message;
@@ -86,6 +87,7 @@ int send_file(conn_t client_conn, msg_t message) {
 	sprintf(path, "%s/%s", SHARED_FILE_DIR, message.buf);
 
 	if (createfile_msg(&file_message, path) < 0) {
+		printf("HIIIIIIII");
 		msg_t err_msg;
 		create_message(&err_msg, "", STATUS_BAD);
 		send_msg(err_msg, client_conn);
