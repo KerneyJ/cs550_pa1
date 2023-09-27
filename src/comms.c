@@ -127,6 +127,7 @@ int createupdt_msg(msg_t* msg, char* update_message, int len, int type){
 }
 
 int createfile_msg(msg_t* msg, char* path){
+	printf("🍕🍕🍕\n");
 	int fd;
 	struct stat s;
 
