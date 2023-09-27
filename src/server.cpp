@@ -14,14 +14,15 @@ static void connection_handler(conn_t client_conn, void message_handler(conn_t, 
     
     message_handler(client_conn, message);
 
+    delete_msg(&message);
 	close_conn(&client_conn);
 }
 
 void servloop_conn(conn_t* server_conn, void (*message_handler)(conn_t, msg_t), volatile sig_atomic_t* interrupt) {
-    ThreadPool threadpool = ThreadPool();
-
+    // ThreadPool threadpool = ThreadPool();
     conn_t client_conn;
 
+    printf("Starting server, accepting incoming connections!\n");
     while(!(*interrupt)) {
         client_conn = servacpt_conn(server_conn);
 
@@ -29,9 +30,9 @@ void servloop_conn(conn_t* server_conn, void (*message_handler)(conn_t, msg_t), 
             continue;
 
         // threadpool.queue_job([client_conn, message_handler] {
-            connection_handler(client_conn, message_handler);
+        connection_handler(client_conn, message_handler);
         // });
     }
 
-    threadpool.teardown();
+    // threadpool.teardown();
 }

@@ -36,8 +36,8 @@ static std::mutex waitlist_lock;
 
 static void set_stop_flag(int signum) {
 	printf("Catching SIGINT!\n");
-    stop = 1;
 	close_conn(&server_conn); // exits blocking accept() calls
+    stop = 1;
 }
 
 static void message_handler(conn_t client_conn, msg_t msg) {
@@ -63,8 +63,6 @@ int main(int argc, char** argv) {
     char *ip = INDEX_SERVER_IP;
     int port = INDEX_SERVER_PORT;
 
-	file_index.add_peer("davegrohl", {420, 69, 0});
-
     if(servinit_conn(&server_conn, ip, port) < 0) {
 		printf("Failed to initialize server, shutting down.\n");
 		return -1;
@@ -74,7 +72,7 @@ int main(int argc, char** argv) {
 		printf("Failed to start listening, shutting down.\n");
 		return -1;
 	}
-    
+	
 	servloop_conn(&server_conn, &message_handler, &stop);
 
 	printf("Shutting down!\n");
@@ -92,6 +90,7 @@ void register_user(conn_t client, msg_t message) {
 
 void register_file(conn_t client, msg_t message) {
 	std::string filename(message.buf);
+	printf("received filename: %s, len=%lu\n", filename.data(), filename.length());
 
 	file_index.add_peer(filename, client);
 
@@ -116,7 +115,7 @@ void register_file(conn_t client, msg_t message) {
 
 void search_index(conn_t client, msg_t message) {
 	msg_t res;
-	std::string filename = message.buf;
+	std::string filename(message.buf);
 
 	conn_t peer = file_index.get_rand_peer(filename);
 
@@ -127,61 +126,62 @@ void search_index(conn_t client, msg_t message) {
 		createupdt_msg(&res, (char*) peer_data, sizeof(int) * 2, STATUS_OK);
 	}
 
-	send_msg(res, client);
+	printf("returning message: type=%d, size=%lu\n", res.type, res.size);
 
+	send_msg(res, client);
 	delete_msg(&res);
 }
 
-std::vector<conn_t> find_replication_peers(std::string filename) {
-	std::vector<conn_t> valid_peers;
-	conn_t valid_peer;
-	uint peer_idx, start_idx;
-	peer_idx = start_idx = rand() % peers.size();
+// std::vector<conn_t> find_replication_peers(std::string filename) {
+// 	std::vector<conn_t> valid_peers;
+// 	conn_t valid_peer;
+// 	uint peer_idx, start_idx;
+// 	peer_idx = start_idx = rand() % peers.size();
 
-	std::unique_lock<std::mutex> lock(peer_lock);
-	// attempt to find enough peers without this file to replicate to
-	for (uint i = 0; i < REPLICATION_FACTOR - file_index.count_peers(filename); i++) {
-		do {
-			valid_peer = peers.at(peer_idx);
-			peer_idx++;
+// 	std::unique_lock<std::mutex> lock(peer_lock);
+// 	// attempt to find enough peers without this file to replicate to
+// 	for (uint i = 0; i < REPLICATION_FACTOR - file_index->count_peers(filename); i++) {
+// 		do {
+// 			valid_peer = peers.at(peer_idx);
+// 			peer_idx++;
 
-			// we've tried every peer, just use the ones that we've found
-			if(peer_idx == start_idx) {
-				valid_peer = {-1, -1, -1};
-				break;
-			}
-		} while(file_index.contains_peer(filename, valid_peer));
+// 			// we've tried every peer, just use the ones that we've found
+// 			if(peer_idx == start_idx) {
+// 				valid_peer = {-1, -1, -1};
+// 				break;
+// 			}
+// 		} while(file_index->contains_peer(filename, valid_peer));
 
-		if(valid_peer.addr < 0)
-			break;
+// 		if(valid_peer.addr < 0)
+// 			break;
 
-		valid_peers.push_back(valid_peer);
-	}
+// 		valid_peers.push_back(valid_peer);
+// 	}
 
-	return valid_peers;
-}
+// 	return valid_peers;
+// }
 
-msg_t create_replication_msg(std::string filename, conn_t peer) {
-	size_t msg_size = sizeof(int) * 2 + sizeof(filename);
-	char* msg_buffer = (char*) malloc(msg_size);
-	msg_buffer[0] = peer.addr;
-	msg_buffer[sizeof(int)] = peer.port;
-	memcpy(msg_buffer + sizeof(int) * 2, filename.data(), sizeof(filename));
+// msg_t create_replication_msg(std::string filename, conn_t peer) {
+// 	size_t msg_size = sizeof(int) * 2 + sizeof(filename);
+// 	char* msg_buffer = (char*) malloc(msg_size);
+// 	msg_buffer[0] = peer.addr;
+// 	msg_buffer[sizeof(int)] = peer.port;
+// 	memcpy(msg_buffer + sizeof(int) * 2, filename.data(), sizeof(filename));
 
-	return { msg_buffer, msg_size, REPLICATION_REQ };
-}
+// 	return { msg_buffer, msg_size, REPLICATION_REQ };
+// }
 
-void request_replication(std::string filename) {
-	msg_t message;
-	auto valid_peers = find_replication_peers(filename);
+// void request_replication(std::string filename) {
+// 	msg_t message;
+// 	auto valid_peers = find_replication_peers(filename);
 
-	for(auto peer : valid_peers) {
-		auto peer_with_file = file_index.get_rand_peer(filename);
+// 	for(auto peer : valid_peers) {
+// 		auto peer_with_file = file_index->get_rand_peer(filename);
 
-		message = create_replication_msg(filename, peer);
+// 		message = create_replication_msg(filename, peer);
 
-		send_msg(message, peer_with_file);
+// 		send_msg(message, peer_with_file);
 
-		delete_msg(&message);
-	}
-}
+// 		delete_msg(&message);
+// 	}
+// }
