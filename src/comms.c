@@ -12,7 +12,9 @@ int servinit_conn(conn_t* conn, char* ip, int port){
 		perror("[-] Error on socket creation");
 		return -1;
 	}
+#ifdef DEBUG
 	printf("[+]Server socket created successfully at %s:%d.\n", ip, port);
+#endif
 	serv_addr.sin_family = AF_INET;
 	serv_addr.sin_port = conn->port;
 	serv_addr.sin_addr.s_addr = conn->addr;
@@ -37,7 +39,9 @@ int servinitco_conn(conn_t* conn, conn_t* data){
 		perror("[-] Error on socket creation");
 		return -1;
 	}
+#ifdef DEBUG
 	printf("[+]Server socket created successfully at %d:%d.\n", conn->addr, conn->port);
+#endif
 	serv_addr.sin_family = AF_INET;
 	serv_addr.sin_port = conn->port;
 	serv_addr.sin_addr.s_addr = conn->addr;
@@ -82,7 +86,9 @@ conn_t servacpt_conn(conn_t* conn){
 	client_conn.port = client_addr.sin_port;
 
 	unsigned char* ip = (unsigned char*)&client_conn.addr;
+#ifdef DEBUG
 	printf("[+]Accepted connection at %d.%d.%d.%d:%d\n", ip[0], ip[1], ip[2], ip[3], client_conn.port);
+#endif
 	return client_conn;
 }
 
@@ -99,7 +105,9 @@ int clntinit_conn(conn_t* conn, char* ip, int port){
 		perror(error_string);
 		return -1;
 	}
+#ifdef DEBUG
 	printf("[+]Connected to Server.\n");
+#endif
 	return 0;
 }
 
@@ -116,8 +124,9 @@ int clntinitco_conn(conn_t* conn, conn_t* srv){
 		perror(error_string);
 		return -1;
 	}
-
+#ifdef DEBUG
 	printf("[+]Connected to Server.\n");
+#endif
 	return 0;
 }
 
@@ -221,7 +230,9 @@ static void getname(char* absolute_path, int len){
 }
 
 static int sendfile_msg(msg_t msg, conn_t conn){
+#ifdef DEBUG
 	printf("[*]Attempting to send file message of size %li + 256(header)\n", msg.size, msg.type);
+#endif
 	long int bytestosend = msg.size;
 	size_t bufferroom = SENDSIZE, sent, sending, headersize = 256;
 	char sendbuf[SENDSIZE] = {0}, *bufpos, fd_path[256] = {0};
@@ -277,12 +288,16 @@ static int sendfile_msg(msg_t msg, conn_t conn){
 		bytestosend -= sent;
 		bufferroom = SENDSIZE;
 	}
+#ifdef DEBUG
 	printf("[+]Successfully sent entire message\n");
+#endif
 	return 0;
 }
 
 static int sendupdt_msg(msg_t msg, conn_t conn){
+#ifdef DEBUG
 	printf("[*]Attempting to send update message of size %li + sizeof(int) + sizeof(size_t)(header)\n", msg.size, msg.type);
+#endif
 	long int bytestosend = msg.size;
 	size_t bufferroom = SENDSIZE, sent, sending, headersize = sizeof(int) + sizeof(size_t);
 	char sendbuf[SENDSIZE] = {0}, *bufpos;
@@ -330,7 +345,9 @@ static int sendupdt_msg(msg_t msg, conn_t conn){
 		bytestosend -= sent;
 		bufferroom = SENDSIZE;
 	}
+#ifdef DEBUG
 	printf("[+]Successfully sent entire message\n");
+#endif
 	return 0;
 }
 

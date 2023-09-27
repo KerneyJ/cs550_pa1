@@ -24,8 +24,9 @@ static void set_stop_flag(int signum) {
 
 void message_handler(conn_t client_conn, msg_t msg) {
 	unsigned char* ip = (unsigned char*) &client_conn.addr;
+#ifdef DEBUG
 	printf("Received a message of type %d\n", msg.type);
-
+#endif
 	if (msg.type == REQUEST_FILE) {
 		send_file(client_conn, msg);
 	} else if (msg.type == REPLICATION_REQ) {
@@ -49,10 +50,11 @@ int main(int argc, char** argv) {
 		printf("Failed to initialize server, shutting down.\n");
 		return -1;
 	}
+#ifdef DEBUG
 	printf("ip=%d, port=%d\n", server_conn.addr, server_conn.port);
+#endif
 
 	register_as_new_user(server_conn);
-
 	if(servlstn_conn(&server_conn, 5)) {
 		printf("Failed to start listening, shutting down.\n");
 		return -1;

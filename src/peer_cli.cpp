@@ -85,7 +85,7 @@ int launch_CLI(conn_t peer_server) {
 					printf("Failed to download.\n");
 					continue;
 				}
-
+				printf("Downloaded file: %s", search_filename);
 				register_file(peer_server, search_filename);
 			}
 		}

@@ -93,9 +93,9 @@ int send_file(conn_t client_conn, msg_t message) {
 
 	send_msg(file_message, client_conn);
 	delete_msg(&file_message);
-
+#ifdef DEBUG
 	printf("File successfully sent!\n");
-
+#endif
 	return 0;
 }
 
@@ -124,9 +124,9 @@ int request_file_from_peer(conn_t peer, char* filename) {
 		perror("Peer did not have requested file.\n");
 		return -1;
 	}
-
+#ifdef DEBUG
 	printf("File successfully downloaded!\n");
-
+#endif
 	close_conn(&client_conn);
 	delete_msg(&res);
 
@@ -237,27 +237,3 @@ conn_t parse_server_conn(int argc, char** argv) {
 
 	return peer_server;
 }
-
-//Download a file. Expects filename. Asks index server for ip address of host with file. Then asks host for the file. Returns 0 if successful.
-//This function just wraps the search_for_file and request_file_from_peer functions to make for a simple call from the CLI.
-// int request_file(char* filename) {
-// 	conn_t file_owner_ip = search_for_file(filename);
-// 	//If the file exists, request it from the peer host. 
-// 	if (file_owner_ip.addr != -1) {
-// 		if (request_file_from_peer(file_owner_ip.addr, filename)) {
-// 			return -2; //Peer didn't have file. 
-// 		}
-// 		//Successful file download. Register file with index server.
-// 		else {
-// 			if(register_file(filename)) {
-// 				return -3; //Failed to register file with server.
-// 			}
-// 			else {
-// 				return 0;
-// 			}
-// 		}
-// 	}
-// 	else {
-// 		return -1; //File doesn't exist
-// 	}
-// }

@@ -14,17 +14,18 @@ ThreadPool::ThreadPool() {
 
     interrupt = false;
     num_threads = std::thread::hardware_concurrency(); 
-
+#ifdef DEBUG
     printf("Creating %d threads\n", num_threads);
-
+#endif
     for(i = 0; i < num_threads; i++) {
         threads.emplace_back(std::thread(&ThreadPool::thread_loop, this));
     }
 }
 
 void ThreadPool::queue_job(std::function<void()> job) {
+#ifdef DEBUG
     printf("Adding job to threadpool queue.\n");
-
+#endif
     queue_lock.lock();
     work_queue.push(job);
     queue_lock.unlock();
@@ -32,8 +33,9 @@ void ThreadPool::queue_job(std::function<void()> job) {
 }
 
 void ThreadPool::teardown() {
+#ifdef DEBUG
     printf("Tearing down threadpool, joining all threads.\n");
-
+#endif
     interrupt = true;
     notify_work.notify_all();
     for(std::thread &thread : threads) {
