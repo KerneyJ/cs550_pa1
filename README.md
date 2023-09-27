@@ -1,6 +1,6 @@
 # P2P File sharing service
 
-###Description
+### Description
 P2P file service implemented as a class project for IIT CS550, Advanced OS (Distributed Systems).
 
 Allows peers to request and send files to each other over a network and query an index server to search for avialable files.
