@@ -127,7 +127,6 @@ int createupdt_msg(msg_t* msg, char* update_message, int len, int type){
 }
 
 int createfile_msg(msg_t* msg, char* path){
-	printf("🍕🍕🍕\n");
 	int fd;
 	struct stat s;
 
@@ -140,6 +139,7 @@ int createfile_msg(msg_t* msg, char* path){
 		return -1;
 	}
 	fstat(fd, &s);
+	printf("🍕🍕🍕🍕🍕🍕🍕🍕🍕\n");
 	msg->type = fd;
 	msg->size = s.st_size;
 	msg->buf = (char*)mmap(NULL, msg->size, PROT_READ, MAP_SHARED, fd, 0);
