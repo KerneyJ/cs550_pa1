@@ -42,8 +42,9 @@ static void set_stop_flag(int signum) {
 
 static void message_handler(conn_t client_conn, msg_t msg) {
 	unsigned char* ip = (unsigned char*) &client_conn.addr;
+#ifdef DEBUG
 	printf("Received a message of type %d\n", msg.type);
-
+#endif
 	switch (msg.type) {
 		case NEW_USER:
 			return register_user(client_conn, msg);
@@ -91,8 +92,9 @@ static std::string buf_to_string(char* buffer, size_t len) {
 void register_user(conn_t client, msg_t message) {
 	std::unique_lock<std::mutex> lock(peer_lock);
 	peers.push_back(client);
-
+#ifdef DEBUG
 	printf("Added peer, num_peers = %lu\n", peers.size());
+#endif
 }
 
 void register_file(conn_t client, msg_t message) {
@@ -109,8 +111,9 @@ void register_file(conn_t client, msg_t message) {
 	std::string filename = buf_to_string(message.buf + sizeof(int)*2, message.size - sizeof(int)*2);
 
 	file_index.add_peer(filename, peer_server);
-
+#ifdef DEBUG
 	printf("Registered peer (%d, %d) with file %s. Total peers with file: %d\n", 
+#endif
 		peer_server.addr, peer_server.port, filename.data(), file_index.count_peers(filename));
 
 	// if(file_index.count_peers(filename) < REPLICATION_FACTOR) {
@@ -132,9 +135,9 @@ void register_file(conn_t client, msg_t message) {
 void search_index(conn_t client, msg_t message) {
 	msg_t res;
 	std::string filename = buf_to_string(message.buf, message.size);
-
+#ifdef DEBUG
 	printf("searching for file %s. filename length=%lu\n", filename.data(), message.size);
-
+#endif
 	conn_t peer = file_index.get_rand_peer(filename);
 
 	if(peer.addr == -1) {
@@ -143,9 +146,9 @@ void search_index(conn_t client, msg_t message) {
 		int peer_data[2] = {peer.addr, peer.port};
 		createupdt_msg(&res, (char*) peer_data, sizeof(int) * 2, STATUS_OK);
 	}
-
+#ifdef DEBUG
 	printf("returning message: type=%d, size=%lu\n", res.type, res.size);
-
+#endif
 	send_msg(res, client);
 	delete_msg(&res);
 }

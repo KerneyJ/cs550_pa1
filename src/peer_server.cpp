@@ -24,14 +24,14 @@ static void set_stop_flag(int signum) {
 
 void message_handler(conn_t client_conn, msg_t msg) {
 	unsigned char* ip = (unsigned char*) &client_conn.addr;
+#ifdef DEBUG
 	printf("Received a message of type %d\n", msg.type);
-
+#endif
 	if (msg.type == REQUEST_FILE) {
 		send_file(client_conn, msg);
 	} else if (msg.type == REPLICATION_REQ) {
 		replicate_file(client_conn, msg);
 	}
-	// else if (msg.type == REQUEST_FILE) 
 }
 
 //Main server loop. Initiated from CLI. 
@@ -39,16 +39,18 @@ int main(int argc, char** argv) {
 	signal(SIGINT, set_stop_flag);
 
 	conn_t peer_server = parse_server_conn(argc, argv);
-
+#ifdef DEBUG
 	printf("Registering with the index server.\n");
+#endif
 	register_as_new_user();
 
 	if(servinitco_conn(&server_conn, &peer_server) < 0) {
 		printf("Failed to initialize server, shutting down.\n");
 		return -1;
 	}
+#ifdef DEBUG
 	printf("ip=%d, port=%d\n", server_conn.addr, server_conn.port);
-
+#endif
 	if(servlstn_conn(&server_conn, 5)) {
 		printf("Failed to start listening, shutting down.\n");
 		return -1;
