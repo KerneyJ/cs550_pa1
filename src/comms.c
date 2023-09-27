@@ -129,7 +129,7 @@ int createupdt_msg(msg_t* msg, char* update_message, int len, int type){
 int createfile_msg(msg_t* msg, char* path){
 	int fd;
 	struct stat s;
-
+	printf("path: %s\n", path);
 	fd = open(path, O_RDONLY);
 	if(fd < 0){
 		char error_string[256];
