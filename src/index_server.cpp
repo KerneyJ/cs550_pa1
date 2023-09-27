@@ -91,8 +91,8 @@ void register_user(conn_t client, msg_t message) {
 }
 
 void register_file(conn_t client, msg_t message) {
+	printf("🚀🚀filename: %s\n", message.buf);
 	std::string filename(message.buf);
-	printf("🚀filename: \n", message.buf);
 
 	file_index.add_peer(filename, client);
 
