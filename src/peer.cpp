@@ -86,6 +86,12 @@ int send_file(conn_t client_conn, msg_t message) {
 	
 	sprintf(path, "./data/%s", message.buf);
 	printf("✅✅✅path: %s\n", path);
+	for (int i = 0; i < message.size; i++)
+	{
+		printf("%c", message.buf[i]);
+		fflush0;
+	}
+	
 
 	if (createfile_msg(&file_message, path) < 0) {
 		printf("HIIIIIIII⭐️\n");
