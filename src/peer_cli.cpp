@@ -87,8 +87,10 @@ int launch_CLI() {
 			// 	//TODO: Request file from peer!
 
 			// }
-			conn_t reply = {16777343, 8081, 0};//search_for_file(search_filename);
+			conn_t reply;
+			clntinit_conn(&reply, "127.0.0.1", 8081);
 			char filename[] = "nice_file_to_have";
+
 			int result = request_file_from_peer(reply, filename);
 			printf("Result: %d", result);
 
