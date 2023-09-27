@@ -107,7 +107,6 @@ int request_file_from_peer(conn_t peer, char* filename) {
 	//Send a msg_t to the ip of the file owner host with msg_type == -3 and buf == filename.
 	//If the host responds by sending you the file, save the file to disk at local_shared_dir.
 	//optional: If the host does not respond, query the index_server for an alternative host until there are no more hosts left to try or you download the file successfuly.
-	printf("IN REQUEST_FILE_FROM_PEER");
 	conn_t client_conn;
 	msg_t req, res;
 
@@ -116,6 +115,7 @@ int request_file_from_peer(conn_t peer, char* filename) {
 	unsigned char* ip = (unsigned char*) &peer.addr;
 	sprintf(ip_str, "%d.%d.%d.%d", ip[0], ip[1], ip[2], ip[3]);
 	clntinit_conn(&client_conn, ip_str, peer.port);
+	printf("IN REQUEST_FILE_FROM_PEER");
 	
 	// clntinit_conn(&client_conn, &peer); // Jamie todo
 	create_message(&req, filename, REQUEST_FILE);
