@@ -111,13 +111,13 @@ int request_file_from_peer(conn_t peer, char* filename) {
 	msg_t req, res;
 	char test_filename[] = "nice_file_to_have"; 
 
-	// temp solution
-	char ip_str[80];
-	unsigned char* ip = (unsigned char*) &peer.addr;
-	sprintf(ip_str, "%d.%d.%d.%d", ip[0], ip[1], ip[2], ip[3]);
-	clntinit_conn(&client_conn, ip_str, peer.port);
+	// // temp solution
+	// char ip_str[80];
+	// unsigned char* ip = (unsigned char*) &peer.addr;
+	// sprintf(ip_str, "%d.%d.%d.%d", ip[0], ip[1], ip[2], ip[3]);
+	// clntinit_conn(&client_conn, ip_str, peer.port);
 	
-	// clntinit_conn(&client_conn, &peer); // Jamie todo
+	clntinitco_conn(&client_conn, &peer); // Jamie todo
 	create_message(&req, test_filename, REQUEST_FILE);
 	send_msg(req, peer);
 	printf("SENT MESSAGE");
