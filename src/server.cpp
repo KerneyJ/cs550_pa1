@@ -19,7 +19,7 @@ static void connection_handler(conn_t client_conn, void message_handler(conn_t, 
 }
 
 void servloop_conn(conn_t* server_conn, void (*message_handler)(conn_t, msg_t), volatile sig_atomic_t* interrupt) {
-    // ThreadPool threadpool = ThreadPool();
+    ThreadPool threadpool = ThreadPool();
     conn_t client_conn;
 
     printf("Starting server, accepting incoming connections!\n");
@@ -29,10 +29,10 @@ void servloop_conn(conn_t* server_conn, void (*message_handler)(conn_t, msg_t), 
         if(client_conn.addr == -1)
             continue;
 
-        // threadpool.queue_job([client_conn, message_handler] {
-        connection_handler(client_conn, message_handler);
-        // });
+        threadpool.queue_job([client_conn, message_handler] {
+            connection_handler(client_conn, message_handler);
+        });
     }
 
-    // threadpool.teardown();
+    threadpool.teardown();
 }

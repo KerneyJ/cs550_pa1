@@ -22,7 +22,7 @@ ThreadPool::ThreadPool() {
     }
 }
 
-void ThreadPool::queue_job(std::function<void()>* job) {
+void ThreadPool::queue_job(std::function<void()> job) {
     printf("Adding job to threadpool queue.\n");
 
     queue_lock.lock();
@@ -45,7 +45,7 @@ void ThreadPool::teardown() {
 }
 
 void ThreadPool::thread_loop() {
-    std::function<void()>* job;
+    std::function<void()> job;
 
     while(true) {
         {
@@ -61,7 +61,7 @@ void ThreadPool::thread_loop() {
             work_queue.pop();
         }
 
-        (*job)();
-        delete job;
+        job();
+        // delete job;
     }
 }

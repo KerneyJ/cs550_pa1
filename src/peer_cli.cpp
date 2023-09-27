@@ -1,16 +1,13 @@
-#include <stdio.h> 
+#include <arpa/inet.h>
+#include <stdio.h>
 #include "peer.hpp"
 #include "constants.hpp"
-#include <string.h>
 
 #define MAX_DIR_NAME_SIZE 1024
 
 
-int launch_CLI() {
+int launch_CLI(conn_t peer_server) {
 
-	char *ip = INDEX_SERVER_IP;
-	int port = INDEX_SERVER_PORT;
-	char *file_dir = SHARED_FILE_DIR;
 	char search_filename[MAX_DIR_NAME_SIZE];
 	int is_running = 1;
 	int user_input;
@@ -43,7 +40,7 @@ int launch_CLI() {
 		}
 		else if (user_input == 1) {
 			printf("\nRegistering files with the server...");
-			int files_registered = register_dir(SHARED_FILE_DIR);
+			int files_registered = register_dir(peer_server, SHARED_FILE_DIR);
 			if (files_registered <0) {
 				printf("Error registering files.");
 			}
@@ -54,7 +51,7 @@ int launch_CLI() {
 		else if (user_input == 2) {
 			printf("📝 Enter the name of the file you'd like to register: \n");
 			scanf("%s", &file_to_register);
-			if (register_file(file_to_register) == 0) {
+			if (register_file(peer_server, file_to_register) == 0) {
 				printf("🔥 Sent a message to the index server to register the file!");
 			}
 			else {
@@ -75,35 +72,39 @@ int launch_CLI() {
 			
 		}
 		else if (user_input ==4) {
-			// printf("Requesting a file to download...\n");
-			// printf("📦 Enter the file you'd like to download: ");
-			// scanf("%s", &search_filename);
-			// conn_t reply = search_for_file(search_filename);
-			// if (reply.addr == -1) {
-			// 	printf("file named {%s} doesn't exist.", search_filename);
-			// }
-			// else {
-			// 	printf("File found on host at IP {%d}, port {%d}... Downloading...", reply.addr, reply.port);
-			// 	//TODO: Request file from peer!
+			printf("Requesting a file to download...\n");
+			printf("📦 Enter the file you'd like to download: ");
+			scanf("%s", &search_filename);
+			conn_t reply = search_for_file(search_filename);
+			if (reply.addr == -1) {
+				printf("file named {%s} doesn't exist.", search_filename);
+			}
+			else {
+				printf("File found on host at IP {%d}, port {%d}... Downloading...", reply.addr, reply.port);
+				//TODO: Request file from peer!
 
-			// }
-			conn_t reply;
-			clntinit_conn(&reply, "127.0.0.1", 8081);
-			char filename[] = "nice_file_to_have";
+				int result = request_file_from_peer(reply, search_filename);
+				printf("Result: %d", result);
 
-			int result = request_file_from_peer(reply, filename);
-			printf("Result: %d", result);
+				register_file(peer_server, search_filename);
 
+			}
 		}
 	}
 	return 0;
 }
 
-
-
-int main(int argc, char const *argv[])
+int main(int argc, char** argv)
 {
-	launch_CLI();
+	conn_t peer_server = parse_server_conn(argc, argv);
+
+	if(peer_server.addr == -1) {
+		printf("Please provide the ip and port that this peers server is running on.\n");
+		printf("\teg: ./peer_cli 127.0.0.1:8888\n");
+		return -1;
+	}
+
+	launch_CLI(peer_server);
 	return 0;
 }
 

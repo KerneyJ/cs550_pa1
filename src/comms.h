@@ -38,6 +38,7 @@ typedef struct {
 } msg_t;
 
 int servinit_conn(conn_t *, char*, int);
+int servinitco_conn(conn_t*, conn_t*);
 int servlstn_conn(conn_t *, int);
 conn_t servacpt_conn(conn_t *);
 int clntinit_conn(conn_t *, char*, int);

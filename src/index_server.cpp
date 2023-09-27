@@ -81,6 +81,13 @@ int main(int argc, char** argv) {
 	return 0;
 }
 
+static std::string buf_to_string(char* buffer, size_t len) {
+	char test[256] = {0};
+	memcpy(test, buffer, len);
+
+	return std::string(test);
+}
+
 void register_user(conn_t client, msg_t message) {
 	std::unique_lock<std::mutex> lock(peer_lock);
 	peers.push_back(client);
@@ -89,13 +96,22 @@ void register_user(conn_t client, msg_t message) {
 }
 
 void register_file(conn_t client, msg_t message) {
-	std::string filename(message.buf);
-	printf("received filename: %s, len=%lu\n", filename.data(), filename.length());
+	conn_t peer_server;
 
-	file_index.add_peer(filename, client);
+	int* ibuffer = (int*) message.buf;
+	if(ibuffer[0] >= 0) {
+		peer_server.addr = ibuffer[0];
+		peer_server.port = ibuffer[1];
+	} else {
+		peer_server = client;
+	}
 
-	printf("registered client (%d, %d) with file %s. total for file: %d\n", 
-		client.addr, client.port, filename.data(), file_index.count_peers(filename));
+	std::string filename = buf_to_string(message.buf + sizeof(int)*2, message.size - sizeof(int)*2);
+
+	file_index.add_peer(filename, peer_server);
+
+	printf("Registered peer (%d, %d) with file %s. Total peers with file: %d\n", 
+		peer_server.addr, peer_server.port, filename.data(), file_index.count_peers(filename));
 
 	// if(file_index.count_peers(filename) < REPLICATION_FACTOR) {
 	// 	request_replication(filename);
@@ -115,7 +131,9 @@ void register_file(conn_t client, msg_t message) {
 
 void search_index(conn_t client, msg_t message) {
 	msg_t res;
-	std::string filename(message.buf);
+	std::string filename = buf_to_string(message.buf, message.size);
+
+	printf("searching for file %s. filename length=%lu\n", filename.data(), message.size);
 
 	conn_t peer = file_index.get_rand_peer(filename);
 

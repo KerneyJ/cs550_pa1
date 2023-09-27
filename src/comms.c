@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include "comms.h"
+#include "constants.hpp"
 
 int servinit_conn(conn_t* conn, char* ip, int port){
 	struct sockaddr_in serv_addr;
@@ -12,6 +13,31 @@ int servinit_conn(conn_t* conn, char* ip, int port){
 		return -1;
 	}
 	printf("[+]Server socket created successfully at %s:%d.\n", ip, port);
+	serv_addr.sin_family = AF_INET;
+	serv_addr.sin_port = conn->port;
+	serv_addr.sin_addr.s_addr = conn->addr;
+
+	if(bind(conn->sock, (struct sockaddr*)&serv_addr, sizeof(serv_addr)) < 0){
+		perror("[-]Error in bind");
+		return -1;
+	}
+#ifdef DEBUG
+	printf("[+]Binding successfull.\n");
+#endif
+	return 0;
+}
+
+int servinitco_conn(conn_t* conn, conn_t* data){
+	struct sockaddr_in serv_addr;
+	socklen_t addr_size;
+	conn->sock = socket(AF_INET, SOCK_STREAM, 0);
+	conn->port = data->port;
+	conn->addr = data->addr;
+	if(conn->sock < 0){
+		perror("[-] Error on socket creation");
+		return -1;
+	}
+	printf("[+]Server socket created successfully at %d:%d.\n", conn->addr, conn->port);
 	serv_addr.sin_family = AF_INET;
 	serv_addr.sin_port = conn->port;
 	serv_addr.sin_addr.s_addr = conn->addr;
@@ -85,7 +111,7 @@ int clntinitco_conn(conn_t* conn, conn_t* srv){
 	serv_addr.sin_addr.s_addr = srv->addr;
 	if(connect(conn->sock, (struct sockaddr*)&serv_addr, sizeof(serv_addr)) < 0){
 		char error_string[256];
-		sprintf(error_string,"[-]Error connecting to %s:%d", srv->addr, srv->port);
+		sprintf(error_string,"[-]Error connecting to %d:%d", srv->addr, srv->port);
 		error_string[255] = 0;
 		perror(error_string);
 		return -1;
@@ -362,7 +388,7 @@ static msg_t recvfile_msg(conn_t conn, msg_t ret, int bytesread, char* prb){
 	char relpath[sizeof(name)] = {0};
 	memcpy(recvbuf, prb, bytesread);
 	memcpy(name, recvbuf+pathstart, 256-pathstart);
-	sprintf(relpath, "./%s", name);
+	sprintf(relpath, "%s/%s", SHARED_FILE_DIR, name);
 	fd = open(relpath, O_RDWR | O_CREAT, 0644);
 	if(fd < 0)
 		return recv_handleerror(ret, "[-]Error creating temp file for file msg", errint);

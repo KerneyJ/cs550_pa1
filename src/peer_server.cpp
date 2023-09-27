@@ -38,12 +38,12 @@ void message_handler(conn_t client_conn, msg_t msg) {
 int main(int argc, char** argv) {
 	signal(SIGINT, set_stop_flag);
 
-	char *ip = "127.0.0.1";
-	int port = 8081;
+	conn_t peer_server = parse_server_conn(argc, argv);
 
-	// register_as_new_user();
+	printf("Registering with the index server.\n");
+	register_as_new_user();
 
-	if(servinit_conn(&server_conn, ip, port) < 0) {
+	if(servinitco_conn(&server_conn, &peer_server) < 0) {
 		printf("Failed to initialize server, shutting down.\n");
 		return -1;
 	}
