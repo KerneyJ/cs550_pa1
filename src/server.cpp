@@ -1,5 +1,4 @@
 
-#include <functional>
 #include <memory>
 #include <signal.h>
 #include <cstdio>
@@ -28,9 +27,9 @@ void servloop_conn(conn_t* server_conn, void (*message_handler)(conn_t, msg_t), 
         if(client_conn.addr == -1)
             continue;
 
-        threadpool.queue_job(new std::function([client_conn, message_handler] {
+        // threadpool.queue_job([client_conn, message_handler] {
             connection_handler(client_conn, message_handler);
-        }));
+        // });
     }
 
     threadpool.teardown();
