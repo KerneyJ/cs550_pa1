@@ -11,7 +11,6 @@ static void connection_handler(conn_t client_conn, void message_handler(conn_t, 
 
 	printf("Waiting for messages on my new connection: %d.%d.%d.%d:%d\n", ip[0], ip[1], ip[2], ip[3], client_conn.port);
     msg_t message = recv_msg(client_conn);
-    printf("💌💌📫 message.type %d, message.size %d, message.buf %s\n", message.type, message.size, message.buf);
     
     message_handler(client_conn, message);
 

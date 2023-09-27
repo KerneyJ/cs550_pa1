@@ -78,23 +78,15 @@ int register_dir(char* dirname) {
 
 //Sends a file to a host. Expects an ip address char array of the receiving host, and a name of file char array of the file to be sent. Returns 0 if successful.
 int send_file(conn_t client_conn, msg_t message) {
-	printf("IN SEND_FILE 🍦🍦🍦🍦\n");
 	//This is called when the host server receives a msg_t with msg_type == REQUEST_FILE.
 	//The host then sends the message to the IP address of the host requesting the file by using the comms.c interface. 
 	msg_t file_message;
 	char path[256] = {0};
 	
 	sprintf(path, "./data/%s", message.buf);
-	printf("✅✅✅path: %s\n", path);
-	for (int i = 0; i < message.size; i++)
-	{
-		printf("%i ", message.buf[i]);
-		fflush(0);
-	}
 	
 
 	if (createfile_msg(&file_message, path) < 0) {
-		printf("HIIIIIIII⭐️\n");
 		msg_t err_msg;
 		create_message(&err_msg, "", STATUS_BAD);
 		send_msg(err_msg, client_conn);
@@ -128,11 +120,8 @@ int request_file_from_peer(conn_t peer, char* filename) {
 	
 	clntinitco_conn(&client_conn, &peer); // Jamie todo
 	create_message(&req, test_filename, REQUEST_FILE);
-	printf("🌊 🌊 🌊 message sent from peer: message.type %d, message.size %d, message.buf %s\n", req.type, req.size, req.buf);
 	send_msg(req, client_conn);
-	printf("SENT MESSAGE");
 	delete_msg(&req);
-	printf("SENT DA FILE REQUEST BROOOOO");
 	res = recv_msg(client_conn);
 
 	if(res.type == NULL_MSG) {

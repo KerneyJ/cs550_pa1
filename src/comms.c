@@ -129,7 +129,6 @@ int createupdt_msg(msg_t* msg, char* update_message, int len, int type){
 int createfile_msg(msg_t* msg, char* path){
 	int fd;
 	struct stat s;
-	printf("path: %s\n", path);
 	fd = open(path, O_RDONLY);
 	if(fd < 0){
 		char error_string[256];
@@ -142,10 +141,7 @@ int createfile_msg(msg_t* msg, char* path){
 	msg->type = fd;
 	msg->size = s.st_size;
 	msg->buf = (char*)mmap(NULL, msg->size, PROT_READ, MAP_SHARED, fd, 0);
-	fflush(0);
-	printf("msg.size: %d\n", msg->size);
 	if(msg->buf == MAP_FAILED){
-		printf("🎂🎂🎂🎂\n");
 		perror("[-]MMAP error while creating file message\n");
 		return -1;
 	}
@@ -276,12 +272,7 @@ static int sendupdt_msg(msg_t msg, conn_t conn){
 		memcpy(bufpos, msg.buf, msg.size);
 	else
 		memcpy(bufpos, msg.buf, bufferroom);
-	// printf("sendbuf %s\n", sendbuf);
-	for (int i = 0; i < 32; i++) {
-		printf("%i ", sendbuf[i]);
-	}
 	sent = send(conn.sock, sendbuf, sizeof(sendbuf), 0);
-	printf("sent: %i\n", sent);
 	if(sent < 0){
 		perror("[-]Error on first packet of send message");
 		return -1;
@@ -464,7 +455,6 @@ msg_t recv_msg(conn_t conn){
 
 	// read initial message
 	bytesread = recv(conn.sock, recvbuf, SENDSIZE, 0);
-	printf("FJHLSDKFJLKSDFGJKLFJDL:🍔🍔🍔");
 	if(bytesread < 0)
 		return recv_handleerror(ret, "[-]Error in receiving initial part of message", EINITMSG);
 
