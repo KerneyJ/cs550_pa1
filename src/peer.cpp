@@ -128,6 +128,7 @@ int request_file_from_peer(conn_t peer, char* filename) {
 	
 	clntinitco_conn(&client_conn, &peer); // Jamie todo
 	create_message(&req, test_filename, REQUEST_FILE);
+	printf("🌊 🌊 🌊 message sent from peer: message.type %d, message.size %d, message.buf %s\n", req.type, req.size, req.buf);
 	send_msg(req, peer);
 	printf("SENT MESSAGE");
 	delete_msg(&req);
