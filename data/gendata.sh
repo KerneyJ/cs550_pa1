@@ -7,11 +7,10 @@ mkdir kilo
 mkdir mega
 mkdir giga
 
-python3 cpmega.py
-python3 cpkilo.py
+python3 cpmega.py $1
+python3 cpkilo.py $1
 
-exit
 for i in {0..9}
 do
-	dd if=/dev/urandom of=./giga/$i.data bs=1G count=1
+	dd if=/dev/urandom of=./giga/vm$1_$i.data bs=1G count=1
 done
