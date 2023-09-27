@@ -85,9 +85,10 @@ int send_file(conn_t client_conn, msg_t message) {
 	char path[256] = {0};
 	
 	sprintf(path, "%s/%s", SHARED_FILE_DIR, message.buf);
-	printf("HIIIIIIII⭐️\n");
+	printf("✅✅✅path: %s\n", path);
 
 	if (createfile_msg(&file_message, path) < 0) {
+		printf("HIIIIIIII⭐️\n");
 		msg_t err_msg;
 		create_message(&err_msg, "", STATUS_BAD);
 		send_msg(err_msg, client_conn);
