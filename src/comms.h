@@ -41,6 +41,7 @@ int servinit_conn(conn_t *, char*, int);
 int servlstn_conn(conn_t *, int);
 conn_t servacpt_conn(conn_t *);
 int clntinit_conn(conn_t *, char*, int);
+int clntinitco_conn(conn_t *, conn_t*);
 int close_conn(conn_t *);
 
 /*

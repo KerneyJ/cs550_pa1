@@ -77,6 +77,23 @@ int clntinit_conn(conn_t* conn, char* ip, int port){
 	return 0;
 }
 
+int clntinitco_conn(conn_t* conn, conn_t* srv){
+	struct sockaddr_in serv_addr;
+	conn->sock = socket(AF_INET, SOCK_STREAM, 0);
+	serv_addr.sin_family = AF_INET;
+	serv_addr.sin_port = srv->port;
+	serv_addr.sin_addr.s_addr = srv->addr;
+	if(connect(conn->sock, (struct sockaddr*)&serv_addr, sizeof(serv_addr)) < 0){
+		char error_string[256];
+		sprintf(error_string,"[-]Error connecting to %s:%d", srv->addr, srv->port);
+		error_string[255] = 0;
+		perror(error_string);
+		return -1;
+	}
+	printf("[+]Connected to Server.\n");
+	return 0;
+}
+
 int close_conn(conn_t *conn){
 	close(conn->sock);
 	conn->sock = -1;
