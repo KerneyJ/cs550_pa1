@@ -275,6 +275,7 @@ static int sendupdt_msg(msg_t msg, conn_t conn){
 		memcpy(bufpos, msg.buf, msg.size);
 	else
 		memcpy(bufpos, msg.buf, bufferroom);
+	printf("sendbuf %s\n", sendbuf);
 	sent = send(conn.sock, sendbuf, sizeof(sendbuf), 0);
 	if(sent < 0){
 		perror("[-]Error on first packet of send message");
