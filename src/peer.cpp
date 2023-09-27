@@ -120,7 +120,7 @@ int request_file_from_peer(conn_t peer, char* filename) {
 	create_message(&req, filename, REQUEST_FILE);
 	send_msg(req, peer);
 	delete_msg(&req);
-
+	printf("SENT DA FILE REQUEST BROOOOO");
 	res = recv_msg(client_conn);
 
 	if(res.type == NULL_MSG) {
