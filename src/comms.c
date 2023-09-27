@@ -280,6 +280,7 @@ static int sendupdt_msg(msg_t msg, conn_t conn){
 		printf("%i ", sendbuf[i]);
 	}
 	sent = send(conn.sock, sendbuf, sizeof(sendbuf), 0);
+	printf("sent: %i\n", sent);
 	if(sent < 0){
 		perror("[-]Error on first packet of send message");
 		return -1;
