@@ -84,7 +84,7 @@ int send_file(conn_t client_conn, msg_t message) {
 	msg_t file_message;
 	char path[256] = {0};
 	
-	sprintf(path, "%s/%s", SHARED_FILE_DIR, message.buf);
+	sprintf(path, "./data/%s", message.buf);
 	printf("✅✅✅path: %s\n", path);
 
 	if (createfile_msg(&file_message, path) < 0) {
