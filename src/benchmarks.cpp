@@ -9,7 +9,8 @@ using namespace std::chrono;
 void timed_search(int num_searches);
 void timed_register(int num_searches);
 
-void run_benchmark(int id) {
+void run_benchmark(int id, std::time_t start) {
+	printf("Starting at %lu\n", start);
     switch(id) {
         case 1:
             return timed_search(10000);

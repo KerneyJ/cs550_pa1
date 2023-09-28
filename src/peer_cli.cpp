@@ -88,15 +88,16 @@ int launch_CLI(conn_t peer_server) {
 			}
 		} else if (user_input == 5) {
 			int test_id;
+			std::time_t start;
 
 			printf("\nSelect a benchmark to run:\n");
 			printf("--------------------\n");
 			printf("[1] Search benchmark.\n");
 			printf("[2] Benchmark 2.\n");
 			printf("[3] Benchmark 3.\n");
-			scanf("%d", &test_id);
+			scanf("%d, %lu", &test_id, &start);
 
-			run_benchmark(test_id);
+			run_benchmark(test_id, start);
 		}
 	}
 	return 0;
