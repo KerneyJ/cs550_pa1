@@ -12,14 +12,14 @@ PEER_SERVER=peer_server.cpp
 IDXSVR=index_server.cpp
 TEST=test.c
 C_SRCS=comms.c
-CPP_SRCS=server.cpp thread_pool.cpp file_index.cpp peer.cpp
+CPP_SRCS=server.cpp thread_pool.cpp file_index.cpp peer.cpp benchmarks.cpp
 C_OBJS=$(C_SRCS:.c=.o)
 CFLAGS=
 CPP_OBJS=$(CPP_SRCS:.cpp=.o)
 
 ifeq ($(DEBUG),true)
     CFLAGS := -D DEBUG
-    CPP_FLAGS := -D DEBUG
+    CPP_FLAGS := $(CPP_FLAGS) -D DEBUG
 endif
 
 all: $(PEER_CLI) $(PEER_SERVER) $(IDXSVR)

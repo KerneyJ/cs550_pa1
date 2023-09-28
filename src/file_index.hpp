@@ -14,6 +14,7 @@ class FileIndex {
         std::mutex index_lock;
     public:
         FileIndex();
+        int replication_factor;
         int add_peer(std::string filename, conn_t peer); // returns number of peers
         conn_t get_rand_peer(std::string filename); // returns random peer that has registered this file for load balancing
         bool contains_peer(std::string filename, conn_t peer);  

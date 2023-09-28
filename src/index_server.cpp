@@ -15,8 +15,6 @@ extern "C" {
 	#include "comms.h"
 }
 
-#define REPLICATION_FACTOR 2
-
 static void register_user(conn_t client, msg_t message);
 static void register_file(conn_t client, msg_t message);
 static void search_index(conn_t client, msg_t message);
@@ -58,11 +56,13 @@ int main(int argc, char** argv) {
 
 	conn_t conn;
 
-	if(parse_conn_arg(argc, argv, 1, &conn) < 0) {
-		printf("Please provide the ip and port that this index server will run on.\n");
-		printf("\teg: ./peer_cli 127.0.0.1:8888\n");
+	if(argc < 3 || parse_conn_arg(argc, argv, 1, &conn) < 0) {
+		printf("Please provide the ip and port that this index server will run on, followed by the replication factor.\n");
+		printf("\teg: ./bin/index_server 127.0.0.1:8888 2\n");
 		return -1;
 	}
+
+	file_index.replication_factor = atoi(argv[2]);
 
     signal(SIGINT, set_stop_flag);
 
@@ -122,8 +122,8 @@ void register_file(conn_t client, msg_t message) {
 		peer_server.addr, peer_server.port, filename.data(), file_index.count_peers(filename));
 #endif
 
-	if(num_peers < REPLICATION_FACTOR) {
-		request_replication(peer_server, filename, REPLICATION_FACTOR - num_peers);
+	if(num_peers < file_index.replication_factor) {
+		request_replication(peer_server, filename, file_index.replication_factor - num_peers);
 	}
 }
 
@@ -149,33 +149,33 @@ void search_index(conn_t client, msg_t message) {
 }
 
 std::vector<conn_t> find_replication_peers(std::string filename, int num_peers) {
+	std::unique_lock<std::mutex> lock(peer_lock);
+
+	if(peers.empty())
+		return {};
+
 	std::vector<conn_t> valid_peers;
 	conn_t valid_peer;
-	int peer_idx, start_idx;
+	int peer_idx, start_idx, is_valid = 0;
 	peer_idx = start_idx = rand() % peers.size();
 
-	std::unique_lock<std::mutex> lock(peer_lock);
 	// attempt to find enough peers without this file to replicate to
 	for (int i = 0; i < num_peers; i++) {
 		do {
 			valid_peer = peers.at(peer_idx);
-			peer_idx = (peer_idx + 1) % peers.size();
+			is_valid = !file_index.contains_peer(filename, valid_peer);
 
+			peer_idx = (peer_idx + 1) % peers.size();
 			// we've tried every peer, just use the ones that we've found
 			if(peer_idx == start_idx) {
 				i = num_peers;
 				break;
 			}
-		} while(file_index.contains_peer(filename, valid_peer));
+		} while(!is_valid);
 
-		valid_peers.push_back(valid_peer);
+		if(is_valid)
+			valid_peers.push_back(valid_peer);
 	}
-
-#ifdef DEBUG
-	if(valid_peers.size() < num_peers) {
-		printf("Found %lu/%d peers to replicate file %s to.\n", valid_peers.size(), num_peers, filename.c_str());
-	}
-#endif
 
 	return valid_peers;
 }
@@ -200,6 +200,12 @@ void request_replication(conn_t peer_with_file, std::string filename, int replic
 	conn_t client;
 	msg_t message;
 	auto valid_peers = find_replication_peers(filename, replications_left);
+
+#ifdef DEBUG
+	if(valid_peers.size() < replications_left) {
+		printf("Found %lu/%d peers to replicate file %s to.\n", valid_peers.size(), replications_left, filename.c_str());
+	}
+#endif
 
 	message = create_replication_msg(filename, peer_with_file);
 	for(auto peer : valid_peers) {

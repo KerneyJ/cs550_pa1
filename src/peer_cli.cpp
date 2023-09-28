@@ -3,6 +3,7 @@
 #include "peer.hpp"
 #include "constants.hpp"
 #include "server.hpp"
+#include "benchmarks.hpp"
 
 #define MAX_DIR_NAME_SIZE 1024
 
@@ -19,7 +20,7 @@ int launch_CLI(conn_t peer_server) {
 	printf("Howdy partner 🤠, ready to pirate some 💿💿💿?");
 	printf("\n-------------------------------------------------\n");
 	
-	printf("Make sure you're running peer_server in a separate shell 🐚.");
+	printf("Make sure you're running peer_server in a separate shell 🐚.\n");
 	printf("Your shared file directory location is %s", SHARED_FILE_DIR);
 
 	while (is_running) {
@@ -28,17 +29,17 @@ int launch_CLI(conn_t peer_server) {
 		printf("\n\n\nSelect a menu item:\n");
 		printf("--------------------\n");
 		printf("[1] ✌️ Spread the love. Register your shared directory with the server.\n");
-		printf("[2] 💰 Register a file\n");
-		printf("[3] 🔎 Search for a file on the server index\n");
-		printf("[4] 📦 Request a file to download from the network\n");
-		printf("[9] 👋 quit (and log off the network).\n");
+		printf("[2] 💰 Register a file.\n");
+		printf("[3] 🔎 Search for a file on the server index.\n");
+		printf("[4] 📦 Request a file to download from the network.\n");
+		printf("[5] 🧪 Run a benchmark.\n");
+		printf("[9] 👋 Quit!\n");
 
 		scanf("%d", &user_input);
 		if (user_input == 9) {
 			printf("Aye Matey, Farewell! 👋\n\n");
 			is_running = 0;
-		}
-		else if (user_input == 1) {
+		} else if (user_input == 1) {
 			printf("\nRegistering files with the server...");
 			int files_registered = register_dir(SHARED_FILE_DIR);
 			if (files_registered <0) {
@@ -47,8 +48,7 @@ int launch_CLI(conn_t peer_server) {
 			else {
 				printf("✅  %d filenames sent to server for registration", files_registered);
 			}
-		}
-		else if (user_input == 2) {
+		} else if (user_input == 2) {
 			printf("📝 Enter the name of the file you'd like to register: \n");
 			scanf("%s", &file_to_register);
 			if (register_file(file_to_register) == 0) {
@@ -57,8 +57,7 @@ int launch_CLI(conn_t peer_server) {
 			else {
 				printf("Error registering file...");
 			}
-		}
-		else if (user_input == 3) {
+		} else if (user_input == 3) {
 			printf("🔎 Enter file you'd like to search for: ");
 			//read in the filename from user
 			scanf("%s", &search_filename);
@@ -68,10 +67,8 @@ int launch_CLI(conn_t peer_server) {
 			}
 			else {
 				printf("File found on host at IP {%d}, port {%d}", reply.addr, reply.port);
-			}
-			
-		}
-		else if (user_input ==4) {
+			}	
+		} else if (user_input == 4) {
 			printf("Requesting a file to download...\n");
 			printf("📦 Enter the file you'd like to download: ");
 			scanf("%s", &search_filename);
@@ -89,6 +86,17 @@ int launch_CLI(conn_t peer_server) {
 				printf("Downloaded file: %s", search_filename);
 				register_file(search_filename);
 			}
+		} else if (user_input == 5) {
+			int test_id;
+
+			printf("\nSelect a benchmark to run:\n");
+			printf("--------------------\n");
+			printf("[1] Benchmark 1.\n");
+			printf("[2] Benchmark 2.\n");
+			printf("[3] Benchmark 3.\n");
+			scanf("%d", &test_id);
+
+			run_benchmark(test_id);
 		}
 	}
 	return 0;
@@ -98,6 +106,7 @@ int main(int argc, char** argv)
 {
 	conn_t peer_server;
 	conn_t index_server;
+	int test_no;
 
 	if (parse_conn_arg(argc, argv, 1, &index_server) < 0 ||
 		parse_conn_arg(argc, argv, 2, &peer_server) < 0) {

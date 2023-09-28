@@ -46,8 +46,8 @@ int main(int argc, char** argv) {
 	if (parse_conn_arg(argc, argv, 1, &index_server) < 0 ||
 		parse_conn_arg(argc, argv, 2, &peer_server) < 0) {
 		printf("Please provide the ip and port that the index server is running on followed by the ip and port that this server will run on.\n");
-		printf("\teg: ./peer_cli 185.236.36.234:8080 127.0.0.1:8080\n");
-		printf("\t       	    index server ⤴     peer server ⤴   \n");
+		printf("\teg: ./peer_server 185.236.36.234:8080 127.0.0.1:8080\n");
+		printf("\t       	       index server ⤴     peer server ⤴   \n");
 		return -1;
 	}
 
