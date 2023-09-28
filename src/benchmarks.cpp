@@ -21,8 +21,6 @@ void run_benchmark(int id) {
 void timed_search(int num_searches) {
     time_point<high_resolution_clock> t1, t2;
 
-    t1 = high_resolution_clock::now();
-
     printf("Registering %d files...\n", num_searches);
     for(int i = 0; i < num_searches; i++) {
         char filename[256] = {0};
@@ -30,11 +28,19 @@ void timed_search(int num_searches) {
         register_file(filename);
     }
 
+    t1 = high_resolution_clock::now();
+
+    printf("Timing runtime of %d searches...\n", num_searches);
+
+    for(int i = 0; i < num_searches; i++) {
+        char filename[256] = {0};
+        sprintf(filename, "file-%d.data", i);
+        search_for_file(filename);
+    }
+
     t2 = high_resolution_clock::now();
     auto elapsed_time_us = duration_cast<microseconds>(t2 - t1);
 
-    printf("Registered %d files in \n", num_searches);
-
-    printf("Timing runtime of %d searches.\n", num_searches);
+    printf("Searched for %d files in %ldus \n", num_searches, elapsed_time_us.count());
 
 }
