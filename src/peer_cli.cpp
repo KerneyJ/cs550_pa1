@@ -91,9 +91,9 @@ int launch_CLI(conn_t peer_server) {
 
 			printf("\nSelect a benchmark to run:\n");
 			printf("--------------------\n");
-			printf("[1] Search benchmark.\n");
-			printf("[2] Benchmark 2.\n");
-			printf("[3] Benchmark 3.\n");
+			printf("[1] Register entire directory.\n");
+			printf("[2] Search benchmark.\n");
+			printf("[3] Search & request file benchmark.\n");
 			scanf("%d", &test_id);
 
 			run_benchmark(test_id);
