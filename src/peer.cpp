@@ -23,10 +23,15 @@ Running a server loop with server.cpp
 #define IP_LENGTH 24
 #define MAX_DIR_NAME_SIZE 1024
 
-static conn_t index_server_conn = {-1, -1, -1};
+static conn_t index_server = {-1, -1, -1};
+static conn_t peer_server = {-1, -1, -1};
 
 void set_index_server_conn(conn_t conn) {
-	index_server_conn = { conn.addr, conn.port, conn.sock };
+	index_server = { conn.addr, conn.port, conn.sock };
+}
+
+void set_peer_server_conn(conn_t conn) {
+	peer_server = { conn.addr, conn.port, conn.sock };
 }
 
 //Connect as new user. Conect to index server (which will get my ip) and register_dir(directory).
@@ -34,10 +39,10 @@ int register_as_new_user() {
 	msg_t message;
 	conn_t client;
 
-	int buffer[2] = {index_server_conn.addr, index_server_conn.port};
+	int buffer[2] = {peer_server.addr, peer_server.port};
 	createupdt_msg(&message, (char*) buffer, sizeof(int) * 2, NEW_USER);
 
-	clntinitco_conn(&client, &index_server_conn);
+	clntinitco_conn(&client, &index_server);
 	send_msg(message, client);
 	close_conn(&client);
 
@@ -47,7 +52,7 @@ int register_as_new_user() {
 }
 
 /*Registers all the files in a directory. Just calls register file for every file in dir*/
-int register_dir(conn_t peer_server, char* dirname) {
+int register_dir(char* dirname) {
 	DIR *dir;
 	struct dirent *entry;
 	int files_registered = 0;
@@ -60,7 +65,7 @@ int register_dir(conn_t peer_server, char* dirname) {
 
 	while ((entry = readdir(dir)) != NULL) {
 		if (entry->d_type == DT_REG) {
-			if (register_file(peer_server, entry->d_name) < 0) {
+			if (register_file(entry->d_name) < 0) {
 				closedir(dir);
 				return -1; //error registering file
 			}
@@ -79,13 +84,7 @@ int send_file(conn_t client_conn, msg_t message) {
 	msg_t file_message;
 	char path[256] = {0};
 	
-	printf("pre:  message.buf=%s\n", message.buf);
-	message.buf[message.size+1] = '\0';
-	printf("post: message.buf=%s\n", message.buf);
-
-	sprintf(path, "%s/%s", SHARED_FILE_DIR, message.buf);
-
-	memcpy(path, SHARED_FILE_DIR, strlen(SHARED_FILE_DIR));
+	sprintf(path, "%s/", SHARED_FILE_DIR);
 	memcpy(path + strlen(SHARED_FILE_DIR) + 1, message.buf, message.size);
 
 	if (createfile_msg(&file_message, path) < 0) {
@@ -141,35 +140,32 @@ int request_file_from_peer(conn_t peer, char* filename) {
 
 //expects the ip address of the host who has the file (char*), and the name of the file to replicate (char*). Returns 0 if successful.
 int replicate_file(conn_t client_conn, msg_t message) {
-	conn_t peer_server;
+	conn_t peer_with_file;
 	char filename[256] = {0};
 
 	int* ibuffer = (int*) message.buf;
 	if(ibuffer[0] >= 0) {
-		peer_server.addr = ibuffer[0];
-		peer_server.port = ibuffer[1];
+		peer_with_file.addr = ibuffer[0];
+		peer_with_file.port = ibuffer[1];
 	}
 
 	memcpy(filename, message.buf + sizeof(int)*2, message.size - sizeof(int)*2);
-
-	for(int i = 0; i < message.size; i++)
-		printf("%i ", message.buf[i]);
 
 #ifdef DEBUG
 	printf("Attempting to replicate file {%s}!", filename);
 #endif
 
-	if(request_file_from_peer(peer_server, filename) < 0) {
+	if(request_file_from_peer(peer_with_file, filename) < 0) {
 		printf("Failed to replicate :(\n");
 		return -1;
 	}
 	// We do not have access to the server connection from here, but a null value here
 	// will ask the server to use the connection it came from 
-	return register_file({-1, -1, -1}, message.buf);
+	return register_file(filename);
 }
 
 /*Registers a file with the index server. Sends name_of_file to index server. Doesn't wait for a response.*/
-int register_file(conn_t peer_server, char* name_of_file) {
+int register_file(char* name_of_file) {
 	msg_t message;
 	conn_t connection;
 	int *ibuffer, len;
@@ -185,7 +181,7 @@ int register_file(conn_t peer_server, char* name_of_file) {
 	message.size = sizeof(int)*2 + len;
 	message.type = REGISTER_FILE;
 
-	clntinitco_conn(&connection, &index_server_conn);
+	clntinitco_conn(&connection, &index_server);
 	if (send_msg(message, connection) < 0) {
 		delete_msg(&message);
 		close_conn(&connection);
@@ -203,14 +199,13 @@ conn_t search_for_file(char* filename) {
 	conn_t connection;
 	msg_t reply;
 	create_message(&message, filename, SEARCH_INDEX);
-	clntinitco_conn(&connection, &index_server_conn);
+	clntinitco_conn(&connection, &index_server);
 	send_msg(message, connection);
 	delete_msg(&message);
 	reply = recv_msg(connection);
 	close_conn(&connection);
 	if (reply.type == STATUS_BAD) {
 		return {-1,-1,-1}; //Sorry no Dave Grohl.
-
 	}
 	//Otherwise the file exists.
 	int *reply_data = (int*)reply.buf;

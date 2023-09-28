@@ -23,9 +23,8 @@ static void connection_handler(conn_t client_conn, void message_handler(conn_t, 
 void servloop_conn(conn_t* server_conn, void (*message_handler)(conn_t, msg_t), volatile sig_atomic_t* interrupt) {
     ThreadPool threadpool = ThreadPool();
     conn_t client_conn;
-#ifdef DEBUG
+
     printf("Starting server, accepting incoming connections!\n");
-#endif
     while(!(*interrupt)) {
         client_conn = servacpt_conn(server_conn);
 
@@ -47,7 +46,7 @@ int parse_conn_arg(int argc, char** argv, int idx, conn_t* conn) {
 	if(argc < idx + 1)
 		return -1;
 
-	std::string full_route(argv[1]);
+	std::string full_route(argv[idx]);
 	split_idx = full_route.find(':');
 
 	if(split_idx == std::string::npos)

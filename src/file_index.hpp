@@ -11,7 +11,7 @@ extern "C" {
 class FileIndex {
     private:
         std::unordered_map<std::string, std::vector<conn_t>> file_peer_map;
-        std::unordered_map<std::string, std::mutex> file_lock_map;
+        std::mutex index_lock;
     public:
         FileIndex();
         int add_peer(std::string filename, conn_t peer); // returns number of peers

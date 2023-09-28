@@ -40,7 +40,7 @@ int launch_CLI(conn_t peer_server) {
 		}
 		else if (user_input == 1) {
 			printf("\nRegistering files with the server...");
-			int files_registered = register_dir(peer_server, SHARED_FILE_DIR);
+			int files_registered = register_dir(SHARED_FILE_DIR);
 			if (files_registered <0) {
 				printf("Error registering files.");
 			}
@@ -51,7 +51,7 @@ int launch_CLI(conn_t peer_server) {
 		else if (user_input == 2) {
 			printf("📝 Enter the name of the file you'd like to register: \n");
 			scanf("%s", &file_to_register);
-			if (register_file(peer_server, file_to_register) == 0) {
+			if (register_file(file_to_register) == 0) {
 				printf("🔥 Sent a message to the index server to register the file!");
 			}
 			else {
@@ -87,7 +87,7 @@ int launch_CLI(conn_t peer_server) {
 					continue;
 				}
 				printf("Downloaded file: %s", search_filename);
-				register_file(peer_server, search_filename);
+				register_file(search_filename);
 			}
 		}
 	}
@@ -103,11 +103,12 @@ int main(int argc, char** argv)
 		parse_conn_arg(argc, argv, 2, &peer_server) < 0) {
 		printf("Please provide the ip and port that the index server is running on followed by the ip and port that this peer's server is running.\n");
 		printf("\teg: ./peer_cli 185.236.36.234:8080 127.0.0.1:8080\n");
-		printf("\t       	index server⤴		  peer server⤴     \n");
+		printf("\t       	    index server ⤴     peer server ⤴   \n");
 		return -1;
 	}
 
 	set_index_server_conn(index_server);
+	set_peer_server_conn(peer_server);
 
 	launch_CLI(peer_server);
 	return 0;

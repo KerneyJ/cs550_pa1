@@ -59,7 +59,7 @@ int main(int argc, char** argv) {
 	conn_t conn;
 
 	if(parse_conn_arg(argc, argv, 1, &conn) < 0) {
-		printf("Please provide the ip and port that this peers server is running on.\n");
+		printf("Please provide the ip and port that this index server will run on.\n");
 		printf("\teg: ./peer_cli 127.0.0.1:8888\n");
 		return -1;
 	}
@@ -110,12 +110,8 @@ void register_file(conn_t client, msg_t message) {
 	conn_t peer_server;
 
 	int* ibuffer = (int*) message.buf;
-	if(ibuffer[0] >= 0) {
-		peer_server.addr = ibuffer[0];
-		peer_server.port = ibuffer[1];
-	} else {
-		peer_server = client;
-	}
+	peer_server.addr = ibuffer[0];
+	peer_server.port = ibuffer[1];
 
 	std::string filename = buf_to_string(message.buf + sizeof(int)*2, message.size - sizeof(int)*2);
 
@@ -155,28 +151,31 @@ void search_index(conn_t client, msg_t message) {
 std::vector<conn_t> find_replication_peers(std::string filename, int num_peers) {
 	std::vector<conn_t> valid_peers;
 	conn_t valid_peer;
-	uint peer_idx, start_idx;
+	int peer_idx, start_idx;
 	peer_idx = start_idx = rand() % peers.size();
 
 	std::unique_lock<std::mutex> lock(peer_lock);
 	// attempt to find enough peers without this file to replicate to
-	for (uint i = 0; i < num_peers; i++) {
+	for (int i = 0; i < num_peers; i++) {
 		do {
 			valid_peer = peers.at(peer_idx);
 			peer_idx = (peer_idx + 1) % peers.size();
 
 			// we've tried every peer, just use the ones that we've found
 			if(peer_idx == start_idx) {
-				valid_peer = {-1, -1, -1};
+				i = num_peers;
 				break;
 			}
 		} while(file_index.contains_peer(filename, valid_peer));
 
-		if(valid_peer.addr < 0)
-			break;
-
 		valid_peers.push_back(valid_peer);
 	}
+
+#ifdef DEBUG
+	if(valid_peers.size() < num_peers) {
+		printf("Found %lu/%d peers to replicate file %s to.\n", valid_peers.size(), num_peers, filename.c_str());
+	}
+#endif
 
 	return valid_peers;
 }
@@ -190,8 +189,6 @@ msg_t create_replication_msg(std::string filename, conn_t peer) {
 	ibuffer[0] = peer.addr;
 	ibuffer[1] = peer.port;
 	memcpy(message.buf + sizeof(int)*2, filename.data(), filename.size());
-
-	printf("created message with filename {%s} \n", message.buf + sizeof(int)*2);
 
 	message.size = sizeof(int)*2 + filename.size();
 	message.type = REPLICATION_REQ;

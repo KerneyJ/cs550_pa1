@@ -47,11 +47,12 @@ int main(int argc, char** argv) {
 		parse_conn_arg(argc, argv, 2, &peer_server) < 0) {
 		printf("Please provide the ip and port that the index server is running on followed by the ip and port that this server will run on.\n");
 		printf("\teg: ./peer_cli 185.236.36.234:8080 127.0.0.1:8080\n");
-		printf("\t       	index server⤴		  peer server⤴     \n");
+		printf("\t       	    index server ⤴     peer server ⤴   \n");
 		return -1;
 	}
 
 	set_index_server_conn(index_server);
+	set_peer_server_conn(peer_server);
 
 #ifdef DEBUG
 	printf("Registering with the index server.\n");

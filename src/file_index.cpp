@@ -9,62 +9,53 @@ FileIndex::FileIndex() {
 }
 
 int FileIndex::add_peer(std::string filename, conn_t peer) {
-    auto lock_iter = file_lock_map.find(filename);
+    std::unique_lock<std::mutex> mutex_lock (index_lock);
+    auto peer_iter = file_peer_map.find(filename);
 
-    // no lock found, no files in map, locking is unnecessary
-    if(lock_iter == file_lock_map.end()) {
+    // no lock found, no files in map
+    if(peer_iter == file_peer_map.end()) {
         file_peer_map.emplace(filename, std::vector<conn_t> { peer });
-        file_lock_map[filename]; // instantiates mutex
         return 1;
     }
     
-    // lock found, there's already an entry for this filename
-    std::unique_lock<std::mutex> lock (lock_iter->second);
-    auto peers = file_peer_map.at(filename);
-    peers.push_back(peer);
-    return peers.size();
+    file_peer_map[filename].push_back(peer);
+    return file_peer_map[filename].size();
 }
 
 int FileIndex::count_peers(std::string filename) {
-    auto lock_iter = file_lock_map.find(filename);
+    std::unique_lock<std::mutex> mutex_lock (index_lock);
+    auto peer_iter = file_peer_map.find(filename);
 
     // no lock found, no files in map
-    if(lock_iter == file_lock_map.end())
+    if(peer_iter == file_peer_map.end())
         return 0;
     
     // lock found, there's already an entry for this filename
-    std::unique_lock<std::mutex> lock (lock_iter->second);
-    return file_peer_map.at(filename).size();
+    return peer_iter->second.size();
 }
 
 conn_t FileIndex::get_rand_peer(std::string filename) {
-    auto lock_iter = file_lock_map.find(filename);
+    std::unique_lock<std::mutex> lock (index_lock);
+    auto peer_iter = file_peer_map.find(filename);
 
-    // no lock found, no files in map
-    if(lock_iter == file_lock_map.end())
+    if(peer_iter == file_peer_map.end())
         return { -1, -1, -1 };
     
-    // lock found, there's already an entry for this filename
-    std::unique_lock<std::mutex> lock (lock_iter->second);
-
-    auto peers = file_peer_map.at(filename);
+    auto peers = peer_iter->second;
     uint index = rand() % peers.size();
     return peers.at(index);
 }
 
 bool FileIndex::contains_peer(std::string filename, conn_t peer) {
-    auto lock_iter = file_lock_map.find(filename);
+    std::unique_lock<std::mutex> lock (index_lock);
+    auto peer_iter = file_peer_map.find(filename);
 
     // TODO: this should not be hit in our use case, is this the right failure mode?
     // no lock found, no files in map
-    if(lock_iter == file_lock_map.end())
+    if(peer_iter == file_peer_map.end())
         return false;
-    
-    // lock found, there's already an entry for this filename
-    std::unique_lock<std::mutex> lock (lock_iter->second);
 
-    auto peers = file_peer_map.at(filename);
-    for(auto p : peers) {
+    for(auto p : peer_iter->second) {
         if(p.addr == peer.addr && p.port == peer.port && p.sock == peer.sock) {
             return true;
         }
