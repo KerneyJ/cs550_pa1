@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include "peer.hpp"
 #include "constants.hpp"
+#include "server.hpp"
 
 #define MAX_DIR_NAME_SIZE 1024
 
@@ -95,13 +96,18 @@ int launch_CLI(conn_t peer_server) {
 
 int main(int argc, char** argv)
 {
-	conn_t peer_server = parse_server_conn(argc, argv);
+	conn_t peer_server;
+	conn_t index_server;
 
-	if(peer_server.addr == -1) {
-		printf("Please provide the ip and port that this peers server is running on.\n");
-		printf("\teg: ./peer_cli 127.0.0.1:8888\n");
+	if (parse_conn_arg(argc, argv, 1, &index_server) < 0 ||
+		parse_conn_arg(argc, argv, 2, &peer_server) < 0) {
+		printf("Please provide the ip and port that the index server is running on followed by the ip and port that this peer's server is running.\n");
+		printf("\teg: ./peer_cli 185.236.36.234:8080 127.0.0.1:8080\n");
+		printf("\t       	index server⤴		  peer server⤴     \n");
 		return -1;
 	}
+
+	set_index_server_conn(index_server);
 
 	launch_CLI(peer_server);
 	return 0;

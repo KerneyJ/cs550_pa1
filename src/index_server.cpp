@@ -56,12 +56,17 @@ static void message_handler(conn_t client_conn, msg_t msg) {
 
 int main(int argc, char** argv) {
 
+	conn_t conn;
+
+	if(parse_conn_arg(argc, argv, 1, &conn) < 0) {
+		printf("Please provide the ip and port that this peers server is running on.\n");
+		printf("\teg: ./peer_cli 127.0.0.1:8888\n");
+		return -1;
+	}
+
     signal(SIGINT, set_stop_flag);
 
-    char *ip = INDEX_SERVER_IP;
-    int port = INDEX_SERVER_PORT;
-
-    if(servinit_conn(&server_conn, ip, port) < 0) {
+    if(servinitco_conn(&server_conn, &conn) < 0) {
 		printf("Failed to initialize server, shutting down.\n");
 		return -1;
 	}
@@ -153,7 +158,6 @@ std::vector<conn_t> find_replication_peers(std::string filename, int num_peers) 
 	uint peer_idx, start_idx;
 	peer_idx = start_idx = rand() % peers.size();
 
-	// if no more peers are joining, we could get away with removing this lock
 	std::unique_lock<std::mutex> lock(peer_lock);
 	// attempt to find enough peers without this file to replicate to
 	for (uint i = 0; i < num_peers; i++) {

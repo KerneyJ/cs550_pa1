@@ -4,9 +4,8 @@ extern "C" {
 
 #include "server.hpp" // this also includes comms.h
 
-
-conn_t parse_server_conn(int argc, char** argv);
-int register_as_new_user(conn_t server_conn); //expects a char array of a directory path, and char array of the index server's ip. Returns 0 if successful.
+void set_index_server_conn(conn_t server_conn);
+int register_as_new_user(); //expects a char array of a directory path, and char array of the index server's ip. Returns 0 if successful.
 int register_file(conn_t, char*); //Expects as input the file name to be registered. Returns 0 if successful.
 int register_dir(conn_t, char*); //expects a char array of a directory path. Returns 0 if successful.
 int send_file(conn_t client_conn, msg_t message); //expects an ip address char array of the receiving host, and a name of file char array of the file to be sent. Returns 0 if successful.

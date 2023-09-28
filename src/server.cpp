@@ -3,6 +3,7 @@
 #include <signal.h>
 #include <cstdio>
 #include <thread>
+#include <string>
 #include <vector>
 #include "server.hpp"
 
@@ -37,4 +38,26 @@ void servloop_conn(conn_t* server_conn, void (*message_handler)(conn_t, msg_t), 
     }
 
     threadpool.teardown();
+}
+
+int parse_conn_arg(int argc, char** argv, int idx, conn_t* conn) {
+	std::string ip, port;
+	int split_idx;
+
+	if(argc < idx + 1)
+		return -1;
+
+	std::string full_route(argv[1]);
+	split_idx = full_route.find(':');
+
+	if(split_idx == std::string::npos)
+		return -1;
+
+	ip = full_route.substr(0, split_idx);
+	port = full_route.substr(split_idx + 1, full_route.size() - split_idx);
+
+	conn->addr = inet_addr(ip.data());
+	conn->port = stoi(port);
+
+	return 0;
 }

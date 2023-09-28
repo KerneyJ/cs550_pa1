@@ -23,15 +23,21 @@ Running a server loop with server.cpp
 #define IP_LENGTH 24
 #define MAX_DIR_NAME_SIZE 1024
 
+static conn_t index_server_conn = {-1, -1, -1};
+
+void set_index_server_conn(conn_t conn) {
+	index_server_conn = { conn.addr, conn.port, conn.sock };
+}
+
 //Connect as new user. Conect to index server (which will get my ip) and register_dir(directory).
-int register_as_new_user(conn_t server_conn) {
+int register_as_new_user() {
 	msg_t message;
 	conn_t client;
 
-	int buffer[2] = {server_conn.addr, server_conn.port};
+	int buffer[2] = {index_server_conn.addr, index_server_conn.port};
 	createupdt_msg(&message, (char*) buffer, sizeof(int) * 2, NEW_USER);
 
-	clntinit_conn(&client, INDEX_SERVER_IP, INDEX_SERVER_PORT);
+	clntinitco_conn(&client, &index_server_conn);
 	send_msg(message, client);
 	close_conn(&client);
 
@@ -179,7 +185,7 @@ int register_file(conn_t peer_server, char* name_of_file) {
 	message.size = sizeof(int)*2 + len;
 	message.type = REGISTER_FILE;
 
-	clntinit_conn(&connection,INDEX_SERVER_IP, INDEX_SERVER_PORT);
+	clntinitco_conn(&connection, &index_server_conn);
 	if (send_msg(message, connection) < 0) {
 		delete_msg(&message);
 		close_conn(&connection);
@@ -197,7 +203,7 @@ conn_t search_for_file(char* filename) {
 	conn_t connection;
 	msg_t reply;
 	create_message(&message, filename, SEARCH_INDEX);
-	clntinit_conn(&connection, INDEX_SERVER_IP, INDEX_SERVER_PORT);
+	clntinitco_conn(&connection, &index_server_conn);
 	send_msg(message, connection);
 	delete_msg(&message);
 	reply = recv_msg(connection);
@@ -212,28 +218,4 @@ conn_t search_for_file(char* filename) {
 	int host_port = reply_data[1];
 	delete_msg(&reply);
 	return {host_ip, host_port, 0};
-}
-
-
-conn_t parse_server_conn(int argc, char** argv) {
-	conn_t peer_server;
-	std::string ip, port;
-	int split_idx;
-
-	if(argc < 2)
-		return { -1, -1, -1 };
-
-	std::string full_route(argv[1]);
-	split_idx = full_route.find(':');
-
-	if(split_idx == std::string::npos)
-		return { -1, -1, -1 };
-
-	ip = full_route.substr(0, split_idx);
-	port = full_route.substr(split_idx + 1, full_route.size() - split_idx);
-
-	peer_server.addr = inet_addr(ip.data());
-	peer_server.port = stoi(port);
-
-	return peer_server;
 }
