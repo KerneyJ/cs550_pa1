@@ -1,3 +1,3 @@
+#include <ctime>
 
-
-void run_benchmark(int id);
+void run_benchmark(int benchmark_id, int vm_id, int num_files, char file_size, std::time_t start);
