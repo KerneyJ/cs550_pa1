@@ -87,7 +87,7 @@ int launch_CLI(conn_t peer_server) {
 				register_file(search_filename);
 			}
 		} else if (user_input == 5) {
-			int test_id, vm_id, num_files;
+			int test_id, vm_id, vm_target, num_files;
 			char file_size;
 			std::time_t start;
 
@@ -100,6 +100,9 @@ int launch_CLI(conn_t peer_server) {
 			printf("\nEnter the VM id for this peer, one digit (0-9):\n");
 			scanf("%d", &vm_id);
 
+			printf("\nEnter the VM id for to target for searches & downloads, one digit (0-9):\n");
+			scanf("%d", &vm_target);
+
 			printf("\nEnter the number of files for this test (1-1,000,000):\n");
 			scanf("%d", &num_files);
 
@@ -109,7 +112,7 @@ int launch_CLI(conn_t peer_server) {
 			printf("\nEnter the UNIX timestamp of when to run:\n");
 			scanf("%lu", &start);
 
-			run_benchmark(test_id, vm_id, num_files, file_size, start);
+			run_benchmark(test_id, vm_id, vm_target, num_files, file_size, start);
 		}
 	}
 	return 0;

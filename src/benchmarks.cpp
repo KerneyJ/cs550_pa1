@@ -17,7 +17,7 @@ static void create_file_name(char* filename, int vm_id, int file_number, char fi
     sprintf(filename, "vm%d_1%c_%06d.data", vm_id, file_size, file_number);
 }
 
-void run_benchmark(int benchmark_id, int vm_id, int num_files, char file_size, std::time_t start) {
+void run_benchmark(int benchmark_id, int vm_id, int vm_target, int num_files, char file_size, std::time_t start) {
     register_files(vm_id, num_files, file_size);
 
 	printf("Starting in %lu seconds\n", start - time(NULL));
@@ -25,9 +25,9 @@ void run_benchmark(int benchmark_id, int vm_id, int num_files, char file_size, s
 
     switch(benchmark_id) {
         case 1:
-            return timed_search(vm_id, num_files, file_size);
+            return timed_search(vm_target, num_files, file_size);
         case 2:
-            return timed_search_request(vm_id, num_files, file_size);
+            return timed_search_request(vm_target, num_files, file_size);
         default:
             printf("Unknown benchmark id.\n");
     }
