@@ -274,7 +274,7 @@ static int sendfile_msg(msg_t msg, conn_t conn){
 		else
 			sending = bytestosend;
 
-		memcpy(sendbuf, bufpos, bufferroom);
+		memcpy(sendbuf, bufpos, sending);
 		sent = send(conn.sock, sendbuf, sending, 0);
 		if(sent < 0){
 			perror("[-]Error in sending message");
