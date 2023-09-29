@@ -18,8 +18,8 @@ int main(char** argv, int argc){
 		conn_t conn = {0, 0, 0};
 		clntinit_conn(&conn, "127.0.0.1", 8080);
 		msg_t msg;
-		//createfile_msg(&msg, "./data/1K.data");
-		createupdt_msg(&msg, "Hello server", 12, NEW_USER);
+		createfile_msg(&msg, "./vm0_1M_000000.data");
+		//createupdt_msg(&msg, "Hello server", 12, NEW_USER);
 		send_msg(msg, conn);
 		delete_msg(&msg);
 		close_conn(&conn);
