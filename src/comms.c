@@ -1,6 +1,34 @@
 #include <stdio.h>
 #include "comms.h"
 #include "constants.hpp"
+#include <ifaddrs.h>
+
+int get_ipv4_address(int* ipv4_addr) {
+    struct ifaddrs *addresses = NULL, *ifa = NULL;
+
+    getifaddrs(&addresses);
+
+	if(addresses == NULL)
+		return -1;
+
+    for (ifa = addresses; ifa != NULL; ifa = ifa->ifa_next) {
+		// ensure address exists and is not a loopback address
+        if (!ifa->ifa_addr || strcmp(ifa->ifa_name, "lo") == 0)
+            continue;
+
+		// check it is IPv4
+        if (ifa->ifa_addr->sa_family == AF_INET) {
+			*ipv4_addr = ((struct sockaddr_in *)ifa->ifa_addr)->sin_addr.s_addr;
+    		freeifaddrs(addresses);
+			return 0;
+		}
+    }
+
+	if(addresses != NULL)
+    	freeifaddrs(addresses);
+
+	return -1;
+}
 
 int servinit_conn(conn_t* conn, char* ip, int port){
 	struct sockaddr_in serv_addr;

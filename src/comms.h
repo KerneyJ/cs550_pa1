@@ -37,6 +37,7 @@ typedef struct {
 	enum msg_type type;
 } msg_t;
 
+int get_ipv4_address(int* ipv4_addr);
 int servinit_conn(conn_t *, char*, int);
 int servinitco_conn(conn_t*, conn_t*);
 int servlstn_conn(conn_t *, int);

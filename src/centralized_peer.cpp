@@ -1,15 +1,4 @@
-/* Booted up by peer_CLI*/
-
-/*
-Every time you message server, you use the msg_t struct. You need to choose the 
-msg_type appropriately depending on the message so the receiving host knows 
-how to handle the message.
-
-Running a server loop with server.cpp
-
-*/
-
-#include "peer.hpp" // includes stdlib.h string.h
+#include "peer_base.hpp"
 #include "comms.h"
 #include "thread_pool.hpp"
 #include <cstring>
@@ -20,8 +9,11 @@ Running a server loop with server.cpp
 #include <string>
 #include "constants.hpp" 
 
-#define IP_LENGTH 24
 #define MAX_DIR_NAME_SIZE 1024
+
+CentralizedPeer::CentralizedPeer(conn_t index_server) : PeerBase() {
+	this->index_server = index_server;
+}
 
 static conn_t index_server = {-1, -1, -1};
 static conn_t peer_server = {-1, -1, -1};
