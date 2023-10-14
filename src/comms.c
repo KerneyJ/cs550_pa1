@@ -2,6 +2,8 @@
 #include "comms.h"
 #include "constants.hpp"
 #include <ifaddrs.h>
+#include <poll.h>
+#include <sys/poll.h>
 
 int get_ipv4_address(int* ipv4_addr) {
     struct ifaddrs *addresses = NULL, *ifa = NULL;
@@ -98,10 +100,29 @@ int servlstn_conn(conn_t* conn, int backlog){
 	return 0;
 }
 
-conn_t servacpt_conn(conn_t* conn){
-	conn_t client_conn = {0, 0, 0};
+conn_t servacpt_conn(conn_t* conn, volatile int* interrupt){
+	conn_t client_conn = {-1, -1, -1};
 	struct sockaddr_in client_addr;
 	socklen_t client_size = sizeof(client_addr);
+
+	struct pollfd pfd;
+	int rc;
+
+	pfd.fd = conn->sock;
+	pfd.events = POLLIN;
+
+	// timeout after 1000 ms and check interrupt
+	do {
+		rc = poll(&pfd, 1, 1000);
+
+		if (rc < 0) {
+			perror("  poll() failed");
+			return client_conn;
+		} else if (rc > 0) {
+			break; // socket can be accepted
+		}
+	} while(!(*interrupt));
+
 	client_conn.sock = accept(conn->sock, (struct sockaddr*)&client_addr, &client_size);
 	if(client_conn.sock < 0){
 		perror("[-]Error on accept");

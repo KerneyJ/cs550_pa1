@@ -20,7 +20,6 @@ int launch_CLI(conn_t peer_server) {
 	printf("Howdy partner 🤠, ready to pirate some 💿💿💿?");
 	printf("\n-------------------------------------------------\n");
 	
-	printf("Make sure you're running peer_server in a separate shell 🐚.\n");
 	printf("Your shared file directory location is %s", SHARED_FILE_DIR);
 
 	while (is_running) {

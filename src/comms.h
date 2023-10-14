@@ -41,7 +41,7 @@ int get_ipv4_address(int* ipv4_addr);
 int servinit_conn(conn_t *, char*, int);
 int servinitco_conn(conn_t*, conn_t*);
 int servlstn_conn(conn_t *, int);
-conn_t servacpt_conn(conn_t *);
+conn_t servacpt_conn(conn_t *, volatile int*);
 int clntinit_conn(conn_t *, char*, int);
 int clntinitco_conn(conn_t *, conn_t*);
 int close_conn(conn_t *);

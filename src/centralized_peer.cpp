@@ -15,16 +15,8 @@ CentralizedPeer::CentralizedPeer(conn_t index_server) : PeerBase() {
 	this->index_server = index_server;
 }
 
-static conn_t index_server = {-1, -1, -1};
-static conn_t peer_server = {-1, -1, -1};
+CentralizedPeer::register_directory()
 
-void set_index_server_conn(conn_t conn) {
-	index_server = { conn.addr, conn.port, conn.sock };
-}
-
-void set_peer_server_conn(conn_t conn) {
-	peer_server = { conn.addr, conn.port, conn.sock };
-}
 
 //Connect as new user. Conect to index server (which will get my ip) and register_dir(directory).
 int register_as_new_user() {

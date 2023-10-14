@@ -7,6 +7,16 @@ extern "C" {
 
 #pragma once
 
-void servloop_conn(conn_t* server_conn, void (*message_handler)(conn_t, msg_t), volatile sig_atomic_t* interrupt);
-
-int parse_conn_arg(int argc, char** argv, int idx, conn_t* server_conn);
+class Server {
+    private:
+        ThreadPool* threads;
+        volatile sig_atomic_t interrupt;
+        conn_t local_server;
+		static void connection_handler(conn_t, void (conn_t, msg_t));
+		static void server_loop(ThreadPool*, conn_t*, void (*)(conn_t, msg_t), volatile sig_atomic_t*);
+    public:
+        Server();
+        ~Server();
+        int start(void (*)(conn_t, msg_t), bool blocking = true);
+		conn_t get_conn_info();
+};

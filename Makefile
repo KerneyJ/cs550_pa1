@@ -21,7 +21,7 @@ ifeq ($(DEBUG),true)
     CPP_FLAGS := $(CPP_FLAGS) -D DEBUG
 endif
 
-all: $(PEER) $(IDXSVR)
+all: $(PEER)
 
 $(TEST): $(C_OBJS)
 	$(CC) $(SRC_DIR)/$(TEST) $(addprefix $(OBJ_DIR)/,$(C_OBJS)) -o $(BIN_DIR)/test

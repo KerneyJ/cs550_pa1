@@ -32,7 +32,7 @@ void ThreadPool::queue_job(std::function<void()> job) {
     notify_work.notify_one();
 }
 
-void ThreadPool::teardown() {
+ThreadPool::~ThreadPool() {
 #ifdef DEBUG
     printf("Tearing down threadpool, joining all threads.\n");
 #endif
@@ -64,6 +64,5 @@ void ThreadPool::thread_loop() {
         }
 
         job();
-        // delete job;
     }
 }

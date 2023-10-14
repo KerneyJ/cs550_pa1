@@ -1,4 +1,6 @@
+#include "thread_pool.hpp"
 #include <array>
+#include <signal.h>
 #include <unordered_map>
 
 extern "C" {
@@ -10,9 +12,23 @@ extern "C" {
 
 class PeerBase {
     private:
-        conn_t self;
+        ThreadPool* threads;
+        volatile sig_atomic_t interrupt;
+        conn_t local_server;
+        static void message_handler(conn_t, msg_t);
+        int start_server();
     public:
         PeerBase();
+        ~PeerBase();
+        void launch_cli();
+};
+
+
+class TestPeer : PeerBase {
+    private:
+        static void message_handler(conn_t, msg_t);
+    public:
+        TestPeer();
 };
 
 class CentralizedPeer : PeerBase {

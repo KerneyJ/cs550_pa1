@@ -56,7 +56,7 @@ int main(int argc, char** argv) {
 
 	conn_t conn;
 
-	if(argc < 3 || parse_conn_arg(argc, argv, 1, &conn) < 0) {
+	if(argc < 3) {
 		printf("Please provide the ip and port that this index server will run on, followed by the replication factor.\n");
 		printf("\teg: ./bin/index_server 127.0.0.1:8888 2\n");
 		return -1;
