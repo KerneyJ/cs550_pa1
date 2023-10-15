@@ -34,8 +34,8 @@ static conn_t init_new_connection() {
 }
 
 void Server::connection_handler(conn_t client_conn, void message_handler(conn_t, msg_t)) {
-	unsigned char* ip = (unsigned char*) &client_conn.addr;
 #ifdef DEBUG
+	unsigned char* ip = (unsigned char*) &client_conn.addr;
 	printf("Waiting for messages on my new connection: %d.%d.%d.%d:%d\n", ip[0], ip[1], ip[2], ip[3], client_conn.port);
 #endif
     msg_t message = recv_msg(client_conn);

@@ -10,6 +10,7 @@
 #include "thread_pool.hpp"
 #include "server.hpp"
 #include "constants.hpp"
+#include "messages.hpp"
 
 extern "C" {
 	#include "comms.h"
@@ -21,131 +22,85 @@ static void search_index(conn_t client, msg_t message);
 static void request_replication(conn_t peer_with_file, std::string filename, int replications_left);
 static msg_t create_replication_msg(std::string filename, conn_t peer);
 
-static volatile sig_atomic_t stop;
-static conn_t server_conn;
-
+static Server server;
 static FileIndex file_index;
 
 static std::vector<conn_t> peers;
 static std::mutex peer_lock;
 
-static void set_stop_flag(int signum) {
-	printf("Catching SIGINT!\n");
-	close_conn(&server_conn); // exits blocking accept() calls
-    stop = 1;
-}
-
-static void message_handler(conn_t client_conn, msg_t msg) {
-	unsigned char* ip = (unsigned char*) &client_conn.addr;
+static void message_handler(conn_t client, msg_t request) {
+	unsigned char* ip = (unsigned char*) &client.addr;
 #ifdef DEBUG
-	printf("Received a message of type %d\n", msg.type);
+	printf("Received a message of type %d\n", request.type);
 #endif
-	switch (msg.type) {
+	switch (request.type) {
 		case NEW_USER:
-			return register_user(client_conn, msg);
+			return register_user(client, request);
 		case REGISTER_FILE:
-			return register_file(client_conn, msg);
+			return register_file(client, request);
 		case SEARCH_INDEX:
-			return search_index(client_conn, msg);
+			return search_index(client, request);
 		default:
-			fprintf(stderr, "Unknown message type: %d", msg.type);
+			fprintf(stderr, "Unknown message type: %d", request.type);
 	}
 }
 
 int main(int argc, char** argv) {
-
-	conn_t conn;
-
-	if(argc < 3) {
-		printf("Please provide the ip and port that this index server will run on, followed by the replication factor.\n");
-		printf("\teg: ./bin/index_server 127.0.0.1:8888 2\n");
-		return -1;
-	}
-
-	file_index.replication_factor = atoi(argv[2]);
-
-    signal(SIGINT, set_stop_flag);
-
-    if(servinitco_conn(&server_conn, &conn) < 0) {
-		printf("Failed to initialize server, shutting down.\n");
-		return -1;
-	}
-
-	if(servlstn_conn(&server_conn, 5)) {
-		printf("Failed to start listening, shutting down.\n");
-		return -1;
-	}
-	
-	servloop_conn(&server_conn, &message_handler, &stop);
-
-	printf("Shutting down!\n");
-	close_conn(&server_conn);
+	server.start(message_handler);
 
 	return 0;
 }
 
-static std::string buf_to_string(char* buffer, size_t len) {
-	char test[256] = {0};
-	memcpy(test, buffer, len);
+void register_user(conn_t client, msg_t request) {
+	conn_t peer;
 
-	return std::string(test);
-}
-
-void register_user(conn_t client, msg_t message) {
-	conn_t peer_server;
-
-	int *data = (int*)message.buf;
-	peer_server.addr = data[0];
-	peer_server.port = data[1];
+	peer = msg_to_conn(request);
 
 	std::unique_lock<std::mutex> lock(peer_lock);
-	peers.push_back(peer_server);
+	peers.push_back(peer);
 
 #ifdef DEBUG
-	printf("Added peer (%d, %d), num_peers = %lu\n", peer_server.addr, peer_server.port, peers.size());
+	unsigned char* ip = (unsigned char*) &peer.addr;
+	printf("Added peer: %d.%d.%d.%d:%d, Peer count: %lu\n", ip[0], ip[1], ip[2], ip[3], peer.port, peers.size());
 #endif
 }
 
-void register_file(conn_t client, msg_t message) {
-	conn_t peer_server;
+void register_file(conn_t client, msg_t request) {
 
-	int* ibuffer = (int*) message.buf;
-	peer_server.addr = ibuffer[0];
-	peer_server.port = ibuffer[1];
+	auto [filename, peer] = msg_to_str_and_conn(request);
 
-	std::string filename = buf_to_string(message.buf + sizeof(int)*2, message.size - sizeof(int)*2);
-
-	int num_peers = file_index.add_peer(filename, peer_server);
+	int num_peers = file_index.add_peer(filename, peer);
 
 #ifdef DEBUG
 	printf("Registered peer (%d, %d) with file %s. Total peers with file: %d\n", 
-		peer_server.addr, peer_server.port, filename.data(), file_index.count_peers(filename));
+		peer.addr, peer.port, filename.data(), file_index.count_peers(filename));
 #endif
 
 	if(num_peers < file_index.replication_factor) {
-		request_replication(peer_server, filename, file_index.replication_factor - num_peers);
+		request_replication(peer, filename, file_index.replication_factor - num_peers);
 	}
 }
 
-void search_index(conn_t client, msg_t message) {
-	msg_t res;
-	std::string filename = buf_to_string(message.buf, message.size);
+void search_index(conn_t client, msg_t request) {
+	msg_t response;
+	std::string filename;
+	
+	filename = msg_to_str(request);
+
 #ifdef DEBUG
-	printf("searching for file %s. filename length=%lu\n", filename.data(), message.size);
+	printf("Searching index for file: %s\n", filename.c_str());
 #endif
+
 	conn_t peer = file_index.get_rand_peer(filename);
 
 	if(peer.addr == -1) {
-		create_message(&res, "", STATUS_BAD);
+		create_message(&response, NULL, STATUS_BAD);
 	} else {
-		int peer_data[2] = {peer.addr, peer.port};
-		createupdt_msg(&res, (char*) peer_data, sizeof(int) * 2, STATUS_OK);
+		response = conn_to_msg(peer, STATUS_OK);
 	}
-#ifdef DEBUG
-	printf("returning message: type=%d, size=%lu\n", res.type, res.size);
-#endif
-	send_msg(res, client);
-	delete_msg(&res);
+	
+	send_msg(response, client);
+	delete_msg(&response);
 }
 
 std::vector<conn_t> find_replication_peers(std::string filename, int num_peers) {
@@ -178,22 +133,6 @@ std::vector<conn_t> find_replication_peers(std::string filename, int num_peers) 
 	}
 
 	return valid_peers;
-}
-
-msg_t create_replication_msg(std::string filename, conn_t peer) {
-	msg_t message;
-	int *ibuffer;
-
-	message.buf = (char*) malloc(sizeof(int)*2 + filename.size());
-	ibuffer = (int*) message.buf;  
-	ibuffer[0] = peer.addr;
-	ibuffer[1] = peer.port;
-	memcpy(message.buf + sizeof(int)*2, filename.data(), filename.size());
-
-	message.size = sizeof(int)*2 + filename.size();
-	message.type = REPLICATION_REQ;
-
-	return message;
 }
 
 void request_replication(conn_t peer_with_file, std::string filename, int replications_left) {

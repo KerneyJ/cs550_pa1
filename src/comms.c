@@ -188,10 +188,10 @@ int close_conn(conn_t *conn){
 }
 
 inline int create_message(msg_t* msg, char* string, int type){
-	if(type > 0)
+	if(IS_FILE_MSG(type))
 		return createfile_msg(msg, string);
 	else
-		return createupdt_msg(msg, string, strlen(string), type);
+		return createupdt_msg(msg, string, string == NULL ? 0 : strlen(string), type);
 }
 
 int createupdt_msg(msg_t* msg, char* update_message, int len, int type){

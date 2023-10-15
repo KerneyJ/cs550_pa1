@@ -7,7 +7,7 @@ BIN_DIR=bin
 OBJ_DIR=obj
 SRC_DIR=src
 
-PEER=peer_base.cpp
+PEER=peer_cli.cpp
 IDXSVR=index_server.cpp
 TEST=test.c
 C_SRCS=comms.c
