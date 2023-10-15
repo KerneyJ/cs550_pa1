@@ -26,17 +26,22 @@ all: $(PEER) $(IDXSVR)
 $(TEST): $(C_OBJS)
 	$(CC) $(SRC_DIR)/$(TEST) $(addprefix $(OBJ_DIR)/,$(C_OBJS)) -o $(BIN_DIR)/test
 
-$(IDXSVR): $(C_OBJS) $(CPP_OBJS)
+$(IDXSVR): $(C_OBJS) $(CPP_OBJS) dir
 	$(CPP) $(CPP_FLAGS) $(SRC_DIR)/$(IDXSVR) $(addprefix $(OBJ_DIR)/,$(C_OBJS)) $(addprefix $(OBJ_DIR)/,$(CPP_OBJS)) -o $(BIN_DIR)/index_server
 
-$(PEER): $(C_OBJS) $(CPP_OBJS)
+$(PEER): $(C_OBJS) $(CPP_OBJS) dir
 	$(CPP) $(CPP_FLAGS) $(SRC_DIR)/$(PEER) $(addprefix $(OBJ_DIR)/,$(C_OBJS)) $(addprefix $(OBJ_DIR)/,$(CPP_OBJS)) -o $(BIN_DIR)/peer
 
-$(CPP_OBJS): %.o: $(SRC_DIR)/%.cpp
+$(CPP_OBJS): %.o: $(SRC_DIR)/%.cpp dir
 	$(CPP) $(CPP_FLAGS) -c $< -o $(OBJ_DIR)/$@
 
-$(C_OBJS): %.o: $(SRC_DIR)/%.c
+$(C_OBJS): %.o: $(SRC_DIR)/%.c dir
 	$(CC) -c $< -o $(OBJ_DIR)/$@ $(CFLAGS)
+
+dir:
+	mkdir -p bin
+	mkdir -p obj
+	mkdir -p data
 
 clean:
 	rm -f $(BIN_DIR)/*

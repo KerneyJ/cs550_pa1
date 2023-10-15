@@ -1,5 +1,10 @@
 # P2P File sharing service
 
+### Authors
+* Ian Dougherty idougherty@hawk.iit.edu
+* Jamison Kerney jkerney@hawk.iit.edu
+* Harrison Mohr jmohr1@hawk.iit.edu
+
 ### Description
 P2P file service implemented as a class project for IIT CS550, Advanced OS (Distributed Systems).
 
@@ -9,7 +14,6 @@ Supports data resilience by replicating files among multiple peers. Number of re
 
 ### Instructions to build and run
 
-1. Clone the repository by running `git clone https://github.com/KerneyJ/cs550_pa1`
 2. Run `mkdir ./bin ./data`
 3. To compile, run `make all`, or if you'd like to see lots of debug messages in your shell, run `make DEBUG=true`. Performance wil be worse because of all the printf statements.
 4. Launch the index server by running `./bin/index_server`
