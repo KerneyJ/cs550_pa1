@@ -6,28 +6,28 @@
 #include <sys/poll.h>
 
 int get_ipv4_address(int* ipv4_addr) {
-    struct ifaddrs *addresses = NULL, *ifa = NULL;
+	struct ifaddrs *addresses = NULL, *ifa = NULL;
 
-    getifaddrs(&addresses);
+	getifaddrs(&addresses);
 
 	if(addresses == NULL)
 		return -1;
 
-    for (ifa = addresses; ifa != NULL; ifa = ifa->ifa_next) {
+	for (ifa = addresses; ifa != NULL; ifa = ifa->ifa_next) {
 		// ensure address exists and is not a loopback address
-        if (!ifa->ifa_addr || strcmp(ifa->ifa_name, "lo") == 0)
-            continue;
+		if (!ifa->ifa_addr || strcmp(ifa->ifa_name, "lo") == 0)
+			continue;
 
 		// check it is IPv4
-        if (ifa->ifa_addr->sa_family == AF_INET) {
+		if (ifa->ifa_addr->sa_family == AF_INET) {
 			*ipv4_addr = ((struct sockaddr_in *)ifa->ifa_addr)->sin_addr.s_addr;
-    		freeifaddrs(addresses);
+			freeifaddrs(addresses);
 			return 0;
 		}
-    }
+	}
 
 	if(addresses != NULL)
-    	freeifaddrs(addresses);
+		freeifaddrs(addresses);
 
 	return -1;
 }
@@ -116,7 +116,7 @@ conn_t servacpt_conn(conn_t* conn, volatile int* interrupt){
 		rc = poll(&pfd, 1, 1000);
 
 		if (rc < 0) {
-			perror("  poll() failed");
+			perror("[-]Error on poll");
 			return client_conn;
 		} else if (rc > 0) {
 			break; // socket can be accepted
