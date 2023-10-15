@@ -4,7 +4,6 @@
 #include <exception>
 #include <iostream>
 #include <stdio.h>
-#include "comms.h"
 #include "constants.hpp"
 #include "server.hpp"
 #include "benchmarks.hpp"
@@ -72,7 +71,7 @@ static void request_file() {
 		return;
 	}
 		
-	printf("Downloaded file: %s", filename.c_str());
+	printf("Downloaded file: %s\n", filename.c_str());
 	peer->register_file(filename);
 }
 
@@ -120,20 +119,43 @@ void launch_cli() {
 	}
 }
 
+int parse_conn_arg(int argc, char** argv, int idx, conn_t* conn) {
+	std::string ip, port;
+	int split_idx;
+
+	if(argc < idx + 1)
+		return -1;
+
+	std::string full_route(argv[idx]);
+	split_idx = full_route.find(':');
+
+	if(split_idx == std::string::npos)
+		return -1;
+
+	ip = full_route.substr(0, split_idx);
+	port = full_route.substr(split_idx + 1, full_route.size() - split_idx);
+
+	conn->addr = inet_addr(ip.data());
+	conn->port = stoi(port);
+
+	return 0;
+}
+
 int main(int argc, char** argv)
 {
-	// conn_t index_server;
+	conn_t index_server;
 
-	// if (parse_conn_arg(argc, argv, 1, &index_server) < 0) {
-	// 	printf("Please provide the ip and port that the index server is running on.\n");
-	// 	printf("\teg: ./bin/peer 185.236.36.234:8080\n");
-	// 	printf("\t       	    index server ⤴\n");
-	// 	return -1;
-	// }
+	if (parse_conn_arg(argc, argv, 1, &index_server) < 0) {
+		printf("Please provide the ip and port that the index server is running on.\n");
+		printf("\teg: ./bin/peer 185.236.36.234:8080\n");
+		return -1;
+	}
 
 	bool isCentralized = true;
 
 	if(isCentralized) {
+		peer = new CentralizedPeer(index_server);
+
 		menu_items[1] = register_directory;
 		menu_items[2] = register_file;
 		menu_items[3] = search_for_file;

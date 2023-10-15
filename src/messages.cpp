@@ -1,5 +1,6 @@
 #include "messages.hpp"
 #include "comms.h"
+#include <cstring>
 
 #define IP_INFO_SIZE sizeof(int) * 2
 
@@ -80,14 +81,14 @@ conn_t msg_to_conn(msg_t msg) {
 }
 
 std::string msg_to_str(msg_t msg) {
-	std::string str(&msg.buf, &msg.buf + msg.size);
+	std::string str(msg.buf, msg.buf + msg.size);
 	return str;
 }
 
 std::pair<std::string, conn_t> msg_to_str_and_conn(msg_t msg) {
 	conn_t conn;
 
-	std::string str(&msg.buf + IP_INFO_SIZE, &msg.buf + msg.size - IP_INFO_SIZE);
+	std::string str(msg.buf + IP_INFO_SIZE, msg.buf + msg.size);
 
 	int* ibuffer = (int*) msg.buf;
 	conn.addr = ibuffer[0];

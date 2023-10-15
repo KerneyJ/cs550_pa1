@@ -1,4 +1,4 @@
-
+#include <functional>
 #include <memory>
 #include <signal.h>
 #include <cstdio>
@@ -33,7 +33,7 @@ static conn_t init_new_connection() {
     return {-1, -1, -1};
 }
 
-void Server::connection_handler(conn_t client_conn, void message_handler(conn_t, msg_t)) {
+void Server::connection_handler(conn_t client_conn, msg_func message_handler) {
 #ifdef DEBUG
 	unsigned char* ip = (unsigned char*) &client_conn.addr;
 	printf("Waiting for messages on my new connection: %d.%d.%d.%d:%d\n", ip[0], ip[1], ip[2], ip[3], client_conn.port);
@@ -46,23 +46,25 @@ void Server::connection_handler(conn_t client_conn, void message_handler(conn_t,
 	close_conn(&client_conn);
 }
 
-void Server::server_loop(ThreadPool* threadpool, conn_t* server_conn, void (*message_handler)(conn_t, msg_t), volatile sig_atomic_t *interrupt) {
-	conn_t client_conn;
+void Server::server_loop(ThreadPool* threadpool, conn_t* server, msg_func message_handler, volatile sig_atomic_t *interrupt) {
+	conn_t client;
 
-    printf("Starting server, accepting incoming connections!\n");
+	unsigned char* ip = (unsigned char*) &server->addr;
+	printf("Starting server at: %d.%d.%d.%d:%d. Accepting incoming connections!\n", ip[0], ip[1], ip[2], ip[3], server->port);
+
 	while(!(*interrupt)) {
-		client_conn = servacpt_conn(server_conn, interrupt);
+		client = servacpt_conn(server, interrupt);
 
-		if(client_conn.addr == -1)
+		if(client.addr == -1)
 			continue;
 
-		threadpool->queue_job([client_conn, message_handler] {
-			connection_handler(client_conn, message_handler);
+		threadpool->queue_job([client, message_handler] {
+			connection_handler(client, message_handler);
 		});
 	}
 }
 
-int Server::start(void (*message_handler)(conn_t, msg_t), bool blocking) {
+int Server::start(msg_func message_handler, bool blocking) {
     conn_t conn = init_new_connection();
 
     if(servinitco_conn(&local_server, &conn) < 0) {
@@ -84,6 +86,10 @@ int Server::start(void (*message_handler)(conn_t, msg_t), bool blocking) {
 	}
 
     return -1;
+}
+
+conn_t Server::get_conn_info() {
+	return local_server;
 }
 
 Server::Server() {

@@ -21,14 +21,14 @@ class IPeer
         virtual conn_t search_for_file(std::string) = 0;
 };
 
-class CentralizedPeer : IPeer {
+class CentralizedPeer : public IPeer {
     private:
         Server server;
         conn_t index_server;
         int request_file(conn_t, std::string);
         int send_file(conn_t, msg_t);
         int replicate_file(conn_t, msg_t);
-        static void message_handler(conn_t, msg_t);
+        void message_handler(conn_t, msg_t);
     public:
         CentralizedPeer(conn_t index_server);
         int register_user();
@@ -38,7 +38,7 @@ class CentralizedPeer : IPeer {
         conn_t search_for_file(std::string);
 };
 
-class DecentralizedPeer : IPeer {
+class DecentralizedPeer : public IPeer {
     private:
         Server server;
         FileIndex file_index;

@@ -1,7 +1,7 @@
 CC=gcc
 CPP=g++
 
-CPP_FLAGS=-Wno-write-strings
+CPP_FLAGS=
 
 BIN_DIR=bin
 OBJ_DIR=obj
@@ -11,7 +11,7 @@ PEER=peer_cli.cpp
 IDXSVR=index_server.cpp
 TEST=test.c
 C_SRCS=comms.c
-CPP_SRCS=server.cpp thread_pool.cpp file_index.cpp
+CPP_SRCS=server.cpp thread_pool.cpp file_index.cpp messages.cpp centralized_peer.cpp
 C_OBJS=$(C_SRCS:.c=.o)
 CFLAGS=
 CPP_OBJS=$(CPP_SRCS:.cpp=.o)
@@ -21,7 +21,7 @@ ifeq ($(DEBUG),true)
     CPP_FLAGS := $(CPP_FLAGS) -D DEBUG
 endif
 
-all: $(PEER)
+all: $(PEER) $(IDXSVR)
 
 $(TEST): $(C_OBJS)
 	$(CC) $(SRC_DIR)/$(TEST) $(addprefix $(OBJ_DIR)/,$(C_OBJS)) -o $(BIN_DIR)/test

@@ -20,7 +20,6 @@ static void register_user(conn_t client, msg_t message);
 static void register_file(conn_t client, msg_t message);
 static void search_index(conn_t client, msg_t message);
 static void request_replication(conn_t peer_with_file, std::string filename, int replications_left);
-static msg_t create_replication_msg(std::string filename, conn_t peer);
 
 static Server server;
 static FileIndex file_index;
@@ -72,7 +71,7 @@ void register_file(conn_t client, msg_t request) {
 	int num_peers = file_index.add_peer(filename, peer);
 
 #ifdef DEBUG
-	printf("Registered peer (%d, %d) with file %s. Total peers with file: %d\n", 
+	printf("Registered peer (%d, %d) with file '%s'. Total peers with file: %d\n", 
 		peer.addr, peer.port, filename.data(), file_index.count_peers(filename));
 #endif
 
@@ -87,8 +86,10 @@ void search_index(conn_t client, msg_t request) {
 	
 	filename = msg_to_str(request);
 
+	std::size_t hash = std::hash<std::string>{}(filename);
+
 #ifdef DEBUG
-	printf("Searching index for file: %s\n", filename.c_str());
+	printf("Searching index for file: '%s'\n", filename.c_str());
 #endif
 
 	conn_t peer = file_index.get_rand_peer(filename);
@@ -146,7 +147,7 @@ void request_replication(conn_t peer_with_file, std::string filename, int replic
 	}
 #endif
 
-	message = create_replication_msg(filename, peer_with_file);
+	message = str_and_conn_to_msg(filename, peer_with_file, REPLICATION_REQ);
 	for(auto peer : valid_peers) {
 #ifdef DEBUG
 		printf("Sending replication message to peer (%d, %d)\n", peer.addr, peer.port);

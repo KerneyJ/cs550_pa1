@@ -2,6 +2,7 @@
 #include "comms.h"
 #include "thread_pool.hpp"
 #include <cstring>
+#include <functional>
 #include <stdio.h>
 #include "comms.h"
 #include <stdlib.h>
@@ -15,6 +16,11 @@
 
 CentralizedPeer::CentralizedPeer(conn_t index_server) {
 	this->index_server = index_server;
+
+   	auto fp = std::bind(&CentralizedPeer::message_handler, this, std::placeholders::_1, std::placeholders::_2);
+	server.start(fp, false);
+	
+	register_user();
 }
 
 int CentralizedPeer::register_user() {
@@ -61,6 +67,9 @@ int CentralizedPeer::register_file(std::string filename) {
 	int status;
 
 	request = str_and_conn_to_msg(filename, server.get_conn_info(), REGISTER_FILE);
+	auto [t1, t2] = msg_to_str_and_conn(request);
+	printf("deserialized: {%d, %d}, %s\n", t2.addr, t2.port, t1.c_str());
+
 	status = send_once(index_server, request);
 	delete_msg(&request);
 
@@ -74,9 +83,10 @@ conn_t CentralizedPeer::search_for_file(std::string filename) {
 	request = str_to_msg(filename, server.get_conn_info(), SEARCH_INDEX);
 	response = send_and_recv(index_server, request);
 	delete_msg(&request);
-
-	if(response.type == NULL_MSG)
+	
+	if(response.type == STATUS_BAD || response.type == NULL_MSG) {
 		return { -1, -1, -1 };
+	}
 
 	peer = msg_to_conn(response);
 
@@ -87,7 +97,7 @@ conn_t CentralizedPeer::search_for_file(std::string filename) {
 int CentralizedPeer::request_file(std::string filename) {
 	conn_t peer;
 	msg_t request, response;
-	char* cfilename;
+	char cfilename[256] = {0};
 
 	peer = search_for_file(filename);
 
@@ -186,4 +196,22 @@ int CentralizedPeer::replicate_file(conn_t client, msg_t request) {
 	}
 
 	return register_file(filename);
+}
+
+void CentralizedPeer::message_handler(conn_t client, msg_t request) {
+
+#ifdef DEBUG
+	printf("Received a message of type %d\n", request.type);
+#endif
+
+	switch(request.type) {
+		case REQUEST_FILE:
+			send_file(client, request);
+			break;
+		case REPLICATION_REQ:
+			replicate_file(client, request);
+			break;
+		default:
+			printf("I don't know what to do with message type %d\n", request.type);
+	}
 }
