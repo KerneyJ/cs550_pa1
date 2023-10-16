@@ -49,6 +49,9 @@ class DecentralizedPeer : public IPeer {
         void message_handler(conn_t, msg_t);
     public:
         DecentralizedPeer(std::string neighbor_file);
+        int register_user();
+        int register_directory(std::string);
+        int register_file(std::string);
         int request_file(std::string);
         conn_t search_for_file(std::string);
 };

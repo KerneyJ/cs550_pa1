@@ -141,19 +141,17 @@ int parse_conn_arg(int argc, char** argv, int idx, conn_t* conn) {
 	return 0;
 }
 
-int main(int argc, char** argv)
-{
-	conn_t index_server;
+int main(int argc, char** argv) {
 
-	if (parse_conn_arg(argc, argv, 1, &index_server) < 0) {
-		printf("Please provide the ip and port that the index server is running on.\n");
-		printf("\teg: ./bin/peer 185.236.36.234:8080\n");
-		return -1;
-	}
+	#ifdef CENTRALIZED_PEER
+		conn_t index_server;
 
-	bool isCentralized = true;
+		if (parse_conn_arg(argc, argv, 1, &index_server) < 0) {
+			printf("Please provide the ip and port that the index server is running on.\n");
+			printf("\teg: ./bin/peer 185.236.36.234:8080\n");
+			return -1;
+		}
 
-	if(isCentralized) {
 		peer = new CentralizedPeer(index_server);
 
 		menu_items[1] = register_directory;
@@ -166,18 +164,25 @@ int main(int argc, char** argv)
 		menu_labels[3] = "🔎 Search for a file on the server index.";
 		menu_labels[4] = "📦 Request a file to download from the network.";
 		menu_labels[9] = "👋 Quit!";
-	} else {
+	#elif DECENTRALIZED_PEER
+		if(argc < 2)  {
+			printf("Please provide a path to a neighbor config file.\n");
+			printf("\teg: ./bin/peer ./config/neighbors.txt\n");
+			return -1;
+		}
+
+		std::string config(argv[1]);
+
+		peer = new DecentralizedPeer(config);
+
 		menu_items[1] = search_for_file;
 		menu_items[2] = request_file;
 
 		menu_labels[1] = "✌️ 🔎 Search for a file on the server index.";
 		menu_labels[2] = "✌️ 📦 Request a file to download from the network.";
 		menu_labels[9] = "👋 Quit!";
-	}
+	#endif
 
 	launch_cli();
 	return 0;
 }
-
-
-
