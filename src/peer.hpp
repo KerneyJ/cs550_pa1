@@ -45,7 +45,8 @@ class DecentralizedPeer : public IPeer {
         std::unordered_map<int, conn_t> received_queries;
         std::vector<conn_t> neighbors;
         void broadcast_query(conn_t sender, msg_t message);
-        void backtrace_response(msg_t message);
+        void backtrace_response(conn_t sender, msg_t message);
+        void message_handler(conn_t, msg_t);
     public:
         DecentralizedPeer(std::string neighbor_file);
         int request_file(std::string);
