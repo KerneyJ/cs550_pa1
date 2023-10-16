@@ -68,7 +68,6 @@ int CentralizedPeer::register_file(std::string filename) {
 
 	request = str_and_conn_to_msg(filename, server.get_conn_info(), REGISTER_FILE);
 	auto [t1, t2] = msg_to_str_and_conn(request);
-	printf("deserialized: {%d, %d}, %s\n", t2.addr, t2.port, t1.c_str());
 
 	status = send_once(index_server, request);
 	delete_msg(&request);
@@ -85,6 +84,7 @@ conn_t CentralizedPeer::search_for_file(std::string filename) {
 	delete_msg(&request);
 	
 	if(response.type == STATUS_BAD || response.type == NULL_MSG) {
+		delete_msg(&response);
 		return { -1, -1, -1 };
 	}
 
@@ -109,15 +109,17 @@ int CentralizedPeer::request_file(std::string filename) {
 	strcpy(cfilename, filename.c_str());
 	create_message(&request, cfilename, REQUEST_FILE);
 
-	send_and_recv(peer, request);
+	response = send_and_recv(peer, request);
 	delete_msg(&request);
 
 	if(response.type == NULL_MSG) {
+		delete_msg(&response);
 		printf("Message failed to receive.\n");
 		return -1;
 	}
 
 	if(response.type == STATUS_BAD) {
+		delete_msg(&response);
 		printf("Peer did not have requested file.\n");
 		return -1;
 	}
@@ -126,26 +128,29 @@ int CentralizedPeer::request_file(std::string filename) {
 	printf("File successfully downloaded!\n");
 #endif
 
+	delete_msg(&response);
 	return 0;
 }
 
 int CentralizedPeer::request_file(conn_t peer, std::string filename) {
 	msg_t request, response;
-	char* cfilename;
+	char cfilename[256] = {0};
 
 	strcpy(cfilename, filename.c_str());
 	create_message(&request, cfilename, REQUEST_FILE);
 
-	send_and_recv(peer, request);
+	response = send_and_recv(peer, request);
 	delete_msg(&request);
 
 	if(response.type == NULL_MSG) {
 		perror("Message failed to receive.\n");
+		delete_msg(&response);
 		return -1;
 	}
 
 	if(response.type == STATUS_BAD) {
 		perror("Peer did not have requested file.\n");
+		delete_msg(&response);
 		return -1;
 	}
 
@@ -153,6 +158,7 @@ int CentralizedPeer::request_file(conn_t peer, std::string filename) {
 	printf("File successfully downloaded!\n");
 #endif
 
+	delete_msg(&response);
 	return 0;
 }
 
@@ -187,13 +193,15 @@ int CentralizedPeer::replicate_file(conn_t client, msg_t request) {
 	auto [filename, peer] = msg_to_str_and_conn(request);
 
 #ifdef DEBUG
-	printf("Attempting to replicate file {%s}!\n", filename);
+	printf("Attempting to replicate file {%s}!\n", filename.c_str());
 #endif
 
 	if(request_file(peer, filename) < 0) {
 		printf("Failed to replicate. :(\n");
 		return -1;
 	}
+
+	printf("request file worked!\n");
 
 	return register_file(filename);
 }

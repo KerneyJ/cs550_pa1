@@ -67,6 +67,11 @@ void Server::server_loop(ThreadPool* threadpool, conn_t* server, msg_func messag
 int Server::start(msg_func message_handler, bool blocking) {
     conn_t conn = init_new_connection();
 
+	if(conn.addr == -1) {
+		printf("Failed to find public ip / open port. Make sure you have an internet connection.\n");
+		return -1;
+	}
+
     if(servinitco_conn(&local_server, &conn) < 0) {
 		printf("Failed to initialize server, shutting down.\n");
 		return -1;

@@ -6,6 +6,7 @@
 #include <vector>
 
 FileIndex::FileIndex() {
+    replication_factor = 1;
 }
 
 int FileIndex::add_peer(std::string filename, conn_t peer) {
