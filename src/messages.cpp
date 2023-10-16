@@ -58,7 +58,7 @@ void create_message(msg_t* msg, conn_t conn, msg_type type) {
 
 void create_message(msg_t* msg, std::string str, msg_type type) {
 	msg->buf = (char*) malloc(str.length());
-	memcpy(msg->buf, str.data(), str.length());
+	memcpy(msg->buf, str.c_str(), str.length());
 
 	msg->size = str.length();
 	msg->type = type;
@@ -77,7 +77,7 @@ void create_message(msg_t* msg, int id, std::string str, msg_type type) {
 	ibuffer[0] = id;
 	memcpy(msg->buf + sizeof(int), str.data(), str.length());
 
-	msg->size = IP_INFO_SIZE + str.length();
+	msg->size = sizeof(int) + str.length();
 	msg->type = type;
 }
 

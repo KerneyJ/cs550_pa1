@@ -6,8 +6,9 @@
 #include <string>
 #include <vector>
 #include "server.hpp"
+#include "constants.hpp"
 
-static conn_t init_new_connection() {
+static conn_t init_new_connection(bool use_fixed_port) {
 	struct sockaddr_in serv_addr;
     int ip, port, sock;
 
@@ -15,6 +16,10 @@ static conn_t init_new_connection() {
         return {-1, -1, -1};
     
 	sock = socket(AF_INET, SOCK_STREAM, 0);
+
+	if(use_fixed_port)
+		return {ip, FIXED_PORT, -1};
+
     for(port = 8000; port < 9000; port++) {
         serv_addr.sin_family = AF_INET;
         serv_addr.sin_port = port;
@@ -25,8 +30,8 @@ static conn_t init_new_connection() {
             continue;
         }
 
+		// bind succeeded, close socket and return a success
         close(sock);
-
         return {ip, port, -1};
     }
 
@@ -65,14 +70,12 @@ void Server::server_loop(ThreadPool* threadpool, conn_t* server, msg_func messag
 }
 
 int Server::start(msg_func message_handler, bool blocking) {
-    conn_t conn = init_new_connection();
-
-	if(conn.addr == -1) {
+	if(local_server.addr == -1) {
 		printf("Failed to find public ip / open port. Make sure you have an internet connection.\n");
 		return -1;
 	}
 
-    if(servinitco_conn(&local_server, &conn) < 0) {
+    if(servinitco_conn(&local_server, &local_server) < 0) {
 		printf("Failed to initialize server, shutting down.\n");
 		return -1;
 	}
@@ -97,9 +100,10 @@ conn_t Server::get_conn_info() {
 	return local_server;
 }
 
-Server::Server() {
+Server::Server(bool use_fixed_port) {
     interrupt = 0;
     threads = new ThreadPool();
+	local_server = init_new_connection(use_fixed_port);
 }
 
 Server::~Server() {

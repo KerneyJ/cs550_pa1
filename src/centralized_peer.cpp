@@ -75,7 +75,7 @@ conn_t CentralizedPeer::search_for_file(std::string filename) {
 	conn_t peer;
 	msg_t request, response;
 
-	create_message(&request, filename, server.get_conn_info(), SEARCH_INDEX);
+	create_message(&request, filename, SEARCH_INDEX);
 	response = send_and_recv(index_server, request);
 	delete_msg(&request);
 	

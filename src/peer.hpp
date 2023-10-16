@@ -24,7 +24,7 @@ class IPeer
 
 class CentralizedPeer : public IPeer {
     private:
-        Server server;
+        Server server = Server(false);;
         conn_t index_server;
         int request_file(conn_t, std::string);
         int send_file(conn_t, msg_t);

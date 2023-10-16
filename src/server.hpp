@@ -17,7 +17,7 @@ class Server {
 		static void connection_handler(conn_t, msg_func);
 		static void server_loop(ThreadPool*, conn_t*, msg_func, volatile sig_atomic_t*);
     public:
-        Server();
+        Server(bool use_fixed_port = true);
         ~Server();
         int start(msg_func message_handler, bool blocking = true);
 		conn_t get_conn_info();
