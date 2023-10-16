@@ -3,7 +3,6 @@
 #include <chrono>
 #include <thread>
 #include "benchmarks.hpp"
-#include "comms.h"
 #include "peer.hpp"
 #include "constants.hpp"
 

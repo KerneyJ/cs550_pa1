@@ -1,5 +1,4 @@
 #include "file_index.hpp"
-#include "comms.h"
 #include <unordered_map>
 #include <mutex>
 #include <string>

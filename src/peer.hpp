@@ -2,6 +2,7 @@
 #include <array>
 #include <signal.h>
 #include <unordered_map>
+#include <unordered_set>
 
 extern "C" {
     #include "comms.h"
@@ -40,15 +41,20 @@ class CentralizedPeer : public IPeer {
 
 class DecentralizedPeer : public IPeer {
     private:
+        unsigned char id;
         Server server;
-        FileIndex file_index;
+        std::unordered_set<std::string> file_set;
         std::unordered_map<int, conn_t> received_queries;
         std::vector<conn_t> neighbors;
         void broadcast_query(conn_t sender, msg_t message);
         void backtrace_response(conn_t sender, msg_t message);
+        void send_file(conn_t, msg_t);
+        void search_index(conn_t, msg_t);
         void message_handler(conn_t, msg_t);
+        void init_neighbors();
+        void init_fileset();
     public:
-        DecentralizedPeer(std::string neighbor_file);
+        DecentralizedPeer(unsigned char peer_id);
         int register_user();
         int register_directory(std::string);
         int register_file(std::string);

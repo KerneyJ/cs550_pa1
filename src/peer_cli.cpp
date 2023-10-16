@@ -166,14 +166,12 @@ int main(int argc, char** argv) {
 		menu_labels[9] = "👋 Quit!";
 	#elif DECENTRALIZED_PEER
 		if(argc < 2)  {
-			printf("Please provide a path to a neighbor config file.\n");
-			printf("\teg: ./bin/peer ./config/neighbors.txt\n");
+			printf("Please provide a vm id.\n");
+			printf("\teg: ./bin/peer <VM_ID>\n");
 			return -1;
 		}
 
-		std::string config(argv[1]);
-
-		peer = new DecentralizedPeer(config);
+		peer = new DecentralizedPeer(atoi(argv[1]));
 
 		menu_items[1] = search_for_file;
 		menu_items[2] = request_file;

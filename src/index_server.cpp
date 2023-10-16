@@ -53,7 +53,7 @@ int main(int argc, char** argv) {
 void register_user(conn_t client, msg_t request) {
 	conn_t peer;
 
-	peer = msg_to_conn(request);
+	parse_message(&request, &peer);
 
 	std::unique_lock<std::mutex> lock(peer_lock);
 	peers.push_back(peer);
@@ -65,8 +65,10 @@ void register_user(conn_t client, msg_t request) {
 }
 
 void register_file(conn_t client, msg_t request) {
+	conn_t peer;
+	std::string filename;
 
-	auto [filename, peer] = msg_to_str_and_conn(request);
+	parse_message(&request, &filename, &peer);
 
 	int num_peers = file_index.add_peer(filename, peer);
 
@@ -84,7 +86,7 @@ void search_index(conn_t client, msg_t request) {
 	msg_t response;
 	std::string filename;
 	
-	filename = msg_to_str(request);
+	parse_message(&request, &filename);
 
 	std::size_t hash = std::hash<std::string>{}(filename);
 
@@ -95,9 +97,9 @@ void search_index(conn_t client, msg_t request) {
 	conn_t peer = file_index.get_rand_peer(filename);
 
 	if(peer.addr == -1) {
-		create_message(&response, NULL, STATUS_BAD);
+		create_message(&response, STATUS_BAD);
 	} else {
-		response = conn_to_msg(peer, STATUS_OK);
+		create_message(&response, peer, STATUS_OK);
 	}
 	
 	send_msg(response, client);
@@ -138,7 +140,7 @@ std::vector<conn_t> find_replication_peers(std::string filename, int num_peers) 
 
 void request_replication(conn_t peer_with_file, std::string filename, int replications_left) {
 	conn_t client;
-	msg_t message;
+	msg_t request;
 	auto valid_peers = find_replication_peers(filename, replications_left);
 
 #ifdef DEBUG
@@ -147,14 +149,14 @@ void request_replication(conn_t peer_with_file, std::string filename, int replic
 	}
 #endif
 
-	message = str_and_conn_to_msg(filename, peer_with_file, REPLICATION_REQ);
+	create_message(&request, filename, peer_with_file, REPLICATION_REQ);
 	for(auto peer : valid_peers) {
 #ifdef DEBUG
-		printf("Sending replication message to peer (%d, %d)\n", peer.addr, peer.port);
+		printf("Sending replication request to peer (%d, %d)\n", peer.addr, peer.port);
 #endif
 		clntinitco_conn(&client, &peer);
-		send_msg(message, client);
+		send_msg(request, client);
 		close_conn(&client);
 	}
-	delete_msg(&message);
+	delete_msg(&request);
 }

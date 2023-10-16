@@ -1,10 +1,8 @@
 #include "peer.hpp"
-#include "comms.h"
 #include "thread_pool.hpp"
 #include <cstring>
 #include <functional>
 #include <stdio.h>
-#include "comms.h"
 #include <stdlib.h>
 #include <dirent.h>
 #include <string>
@@ -27,7 +25,7 @@ int CentralizedPeer::register_user() {
 	msg_t request;
 	int status;
 
-	request = conn_to_msg(server.get_conn_info(), NEW_USER);
+	create_message(&request, server.get_conn_info(), NEW_USER);
 	status = send_once(index_server, request);
 	delete_msg(&request);
 
@@ -66,9 +64,7 @@ int CentralizedPeer::register_file(std::string filename) {
 	msg_t request;
 	int status;
 
-	request = str_and_conn_to_msg(filename, server.get_conn_info(), REGISTER_FILE);
-	auto [t1, t2] = msg_to_str_and_conn(request);
-
+	create_message(&request, filename, server.get_conn_info(), REGISTER_FILE);
 	status = send_once(index_server, request);
 	delete_msg(&request);
 
@@ -79,7 +75,7 @@ conn_t CentralizedPeer::search_for_file(std::string filename) {
 	conn_t peer;
 	msg_t request, response;
 
-	request = str_to_msg(filename, server.get_conn_info(), SEARCH_INDEX);
+	create_message(&request, filename, server.get_conn_info(), SEARCH_INDEX);
 	response = send_and_recv(index_server, request);
 	delete_msg(&request);
 	
@@ -88,16 +84,15 @@ conn_t CentralizedPeer::search_for_file(std::string filename) {
 		return { -1, -1, -1 };
 	}
 
-	peer = msg_to_conn(response);
-
+	parse_message(&response, &peer);
 	delete_msg(&response);
+
 	return peer;
 }
 
 int CentralizedPeer::request_file(std::string filename) {
 	conn_t peer;
 	msg_t request, response;
-	char cfilename[256] = {0};
 
 	peer = search_for_file(filename);
 
@@ -106,8 +101,7 @@ int CentralizedPeer::request_file(std::string filename) {
 		return -1;
 	}
 
-	strcpy(cfilename, filename.c_str());
-	create_message(&request, cfilename, REQUEST_FILE);
+	create_message(&request, filename, REQUEST_FILE);
 
 	response = send_and_recv(peer, request);
 	delete_msg(&request);
@@ -134,11 +128,8 @@ int CentralizedPeer::request_file(std::string filename) {
 
 int CentralizedPeer::request_file(conn_t peer, std::string filename) {
 	msg_t request, response;
-	char cfilename[256] = {0};
 
-	strcpy(cfilename, filename.c_str());
-	create_message(&request, cfilename, REQUEST_FILE);
-
+	create_message(&request, filename, REQUEST_FILE);
 	response = send_and_recv(peer, request);
 	delete_msg(&request);
 
@@ -170,7 +161,7 @@ int CentralizedPeer::send_file(conn_t client, msg_t request) {
 	memcpy(path + strlen(SHARED_FILE_DIR) + 1, request.buf, request.size);
 
 	if (createfile_msg(&response, path) < 0) {
-		create_message(&error, NULL, STATUS_BAD);
+		create_message(&error, STATUS_BAD);
 		send_msg(error, client);
 		delete_msg(&error);
 
@@ -189,8 +180,10 @@ int CentralizedPeer::send_file(conn_t client, msg_t request) {
 }
 
 int CentralizedPeer::replicate_file(conn_t client, msg_t request) {
-
-	auto [filename, peer] = msg_to_str_and_conn(request);
+	conn_t peer;
+	std::string filename;
+	
+	parse_message(&request, &filename, &peer);
 
 #ifdef DEBUG
 	printf("Attempting to replicate file {%s}!\n", filename.c_str());

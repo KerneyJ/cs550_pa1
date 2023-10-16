@@ -1,5 +1,4 @@
 #include "messages.hpp"
-#include "comms.h"
 #include <cstring>
 
 #define IP_INFO_SIZE sizeof(int) * 2
@@ -35,64 +34,77 @@ msg_t send_and_recv(conn_t dest, msg_t request) {
     return response;
 }
 
-msg_t str_and_conn_to_msg(std::string str, conn_t conn, msg_type type) {
-	msg_t msg;
+void create_message(msg_t* msg, msg_type type) {
+	createupdt_msg(msg, NULL, 0, type);
+}
+
+void create_message(msg_t* msg, std::string str, conn_t conn, msg_type type) {
 	int *ibuffer;
 
-	msg.buf = (char*) malloc(IP_INFO_SIZE + str.length());
-	ibuffer = (int*) msg.buf;  
+	msg->buf = (char*) malloc(IP_INFO_SIZE + str.length());
+	ibuffer = (int*) msg->buf;  
 	ibuffer[0] = conn.addr;
 	ibuffer[1] = conn.port;
-	memcpy(msg.buf + IP_INFO_SIZE, str.data(), str.length());
+	memcpy(msg->buf + IP_INFO_SIZE, str.data(), str.length());
 
-	msg.size = IP_INFO_SIZE + str.length();
-	msg.type = type;
-
-    return msg;
+	msg->size = IP_INFO_SIZE + str.length();
+	msg->type = type;
 }
 
-msg_t conn_to_msg(conn_t conn, msg_type type) {
-	msg_t msg;
-
+void create_message(msg_t* msg, conn_t conn, msg_type type) {
 	int buffer[2] = {conn.addr, conn.port};
-	createupdt_msg(&msg, (char*) buffer, IP_INFO_SIZE, type);
-
-    return msg;
+	createupdt_msg(msg, (char*) buffer, IP_INFO_SIZE, type);
 }
 
-msg_t str_to_msg(std::string str, conn_t conn, msg_type type) {
-    msg_t msg;
+void create_message(msg_t* msg, std::string str, msg_type type) {
+	msg->buf = (char*) malloc(str.length());
+	memcpy(msg->buf, str.data(), str.length());
 
-	msg.buf = (char*) malloc(str.length());
-	memcpy(msg.buf, str.data(), str.length());
-
-	msg.size = str.length();
-	msg.type = type;
-
-    return msg;
+	msg->size = str.length();
+	msg->type = type;
 }
 
-conn_t msg_to_conn(msg_t msg) {
-	int *ibuf = (int*) msg.buf;
-	int host_ip = ibuf[0];
-	int host_port = ibuf[1];
-
-    return { host_ip, host_port, 0 };
+void create_message(msg_t* msg, int id, conn_t conn, msg_type type) {
+ 	int buffer[3] = {id, conn.addr, conn.port};
+	createupdt_msg(msg, (char*) buffer, IP_INFO_SIZE, type);
 }
 
-std::string msg_to_str(msg_t msg) {
-	std::string str(msg.buf, msg.buf + msg.size);
-	return str;
+void create_message(msg_t* msg, int id, std::string str, msg_type type) {
+	int *ibuffer;
+
+	msg->buf = (char*) malloc(sizeof(int) + str.length());
+	ibuffer = (int*) msg->buf;  
+	ibuffer[0] = id;
+	memcpy(msg->buf + sizeof(int), str.data(), str.length());
+
+	msg->size = IP_INFO_SIZE + str.length();
+	msg->type = type;
 }
 
-std::pair<std::string, conn_t> msg_to_str_and_conn(msg_t msg) {
-	conn_t conn;
 
-	std::string str(msg.buf + IP_INFO_SIZE, msg.buf + msg.size);
 
-	int* ibuffer = (int*) msg.buf;
-	conn.addr = ibuffer[0];
-	conn.port = ibuffer[1];
+void parse_message(msg_t* msg, conn_t* conn) {
+	int *ibuf = (int*) msg->buf;
+	conn->addr = ibuf[0];
+	conn->port = ibuf[1];
+}
 
-	return { str, conn };
+void parse_message(msg_t* msg, std::string* str) {
+	str->assign(msg->buf, msg->buf + msg->size);
+}
+
+void parse_message(msg_t* msg, std::string* str, conn_t* conn) {
+	str->assign(msg->buf + IP_INFO_SIZE, msg->buf + msg->size);
+
+	int* ibuffer = (int*) msg->buf;
+	conn->addr = ibuffer[0];
+	conn->port = ibuffer[1];
+}
+
+void parse_message(msg_t* msg, int* id, conn_t* conn) {
+
+}
+
+void parse_message(msg_t* msg, int* id, std::string* str) {
+
 }
