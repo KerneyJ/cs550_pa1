@@ -20,3 +20,4 @@ void parse_message(msg_t* msg, std::string* str);
 void parse_message(msg_t* msg, std::string* str, conn_t* conn);
 void parse_message(msg_t* msg, int* id, conn_t* conn);
 void parse_message(msg_t* msg, int* id, std::string* str);
+void parse_message(msg_t* msg, int* id);

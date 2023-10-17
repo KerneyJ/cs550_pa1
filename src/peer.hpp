@@ -41,9 +41,12 @@ class CentralizedPeer : public IPeer {
 
 class DecentralizedPeer : public IPeer {
     private:
-        unsigned char id;
+        unsigned char peer_id;
+        std::mutex message_id_lock;
+        unsigned int message_count;
         Server server;
         std::unordered_set<std::string> file_set;
+        std::mutex query_map_lock;
         std::unordered_map<int, conn_t> received_queries;
         std::vector<conn_t> neighbors;
         void broadcast_query(conn_t sender, msg_t message);
@@ -53,6 +56,7 @@ class DecentralizedPeer : public IPeer {
         void message_handler(conn_t, msg_t);
         void init_neighbors();
         void init_fileset();
+        int get_message_id();
     public:
         DecentralizedPeer(unsigned char peer_id);
         int register_user();
