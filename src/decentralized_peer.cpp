@@ -4,6 +4,9 @@
 #include <stdexcept>
 #include "constants.hpp"
 #include <dirent.h>
+#include <string>
+#include <thread>
+#include <vector>
 
 DecentralizedPeer::DecentralizedPeer(unsigned char peer_id) {
 	this->peer_id = peer_id;
@@ -45,36 +48,29 @@ int DecentralizedPeer::get_message_id() {
 	return message_count + ((unsigned int) peer_id << 24);
 }
 
-void DecentralizedPeer::broadcast_query(conn_t sender, msg_t message) {
+void DecentralizedPeer::broadcast_query(conn_t sender, msg_t* message, msg_t* query_response) {
+	std::vector<std::thread> threads;
+	create_message(query_response, NULL_MSG);
+
 	// broadcast to everyone except sender
 	for(auto neighbor : neighbors) {
 		if(neighbor.addr == sender.addr)
 			continue;
 
-		send_once(neighbor, message);
-	}
-}
+		threads.emplace_back(std::thread([neighbor, message, &query_response] () {
+			msg_t response = send_and_recv(neighbor, *message);
 
-void DecentralizedPeer::backtrace_response(conn_t sender, msg_t message) {
-	int msg_id;
-	conn_t peer;
-
-	std::unique_lock<std::mutex> lock(query_map_lock);
-	parse_message(&message, &msg_id);
-
-	auto iter = received_queries.find(msg_id);
-
-	if(iter == received_queries.end()) {
-		printf("Backtrace message has no corresponding peer.\n");
-		return;
+			// we don't lock bc only one response should ever backtrace
+			if(response.type != DUP_REQUEST) {
+				query_response->buf = response.buf;
+				query_response->size = response.size;
+				query_response->type = response.type;
+			}
+		}));
 	}
 
-	if(iter->second.addr == server.get_conn_info().addr) {
-		printf("Backtrace message arrived at its destination!\n");
-		// TODO: respond in cli
-	}
-
-	send_once(iter->second, message);
+	for(auto &thread : threads)
+		thread.join();
 }
 
 void DecentralizedPeer::search_index(conn_t client, msg_t request) {
@@ -95,11 +91,17 @@ void DecentralizedPeer::search_index(conn_t client, msg_t request) {
 
 	// Check if we have the file. if not, broadcast this message
     if(file_set.find(filename) == file_set.end()) {
-        broadcast_query(client, request);
+        broadcast_query(client, &request, &response);
+
+		if(response.type == NULL_MSG)
+			create_message(&response, DUP_REQUEST);
+
+		send_msg(response, client);
+		delete_msg(&response);
         return;
     }
 
-	create_message(&response, get_message_id(), server.get_conn_info(), STATUS_OK);
+	create_message(&response, msg_id, server.get_conn_info(), STATUS_OK);
     send_msg(response, client);
 	delete_msg(&response);
 }
@@ -114,7 +116,8 @@ int DecentralizedPeer::request_file(std::string filename) {
 
 conn_t DecentralizedPeer::search_for_file(std::string filename) {
 	int msg_id;
-	msg_t request;
+	msg_t request, response;
+	conn_t peer;
 
 	msg_id = get_message_id();
 	create_message(&request, msg_id, filename, SEARCH_INDEX);
@@ -124,10 +127,17 @@ conn_t DecentralizedPeer::search_for_file(std::string filename) {
 		received_queries.insert({ msg_id, server.get_conn_info() });
 	}
 
-	broadcast_query(server.get_conn_info(), request);
+	broadcast_query(server.get_conn_info(), &request, &response);
 	delete_msg(&request);
 
-    return {-1, -1, -1};
+	if(response.type == STATUS_OK) {
+		parse_message(&response, &msg_id,  &peer);
+		delete_msg(&response);
+		return peer;
+	}
+
+	delete_msg(&response);
+	return { -1, -1, -1 };
 }
 
 void DecentralizedPeer::message_handler(conn_t client, msg_t request) {
@@ -137,10 +147,6 @@ void DecentralizedPeer::message_handler(conn_t client, msg_t request) {
 #endif
 
 	switch(request.type) {
-		case STATUS_OK:
-		case STATUS_BAD:
-			backtrace_response(client, request);
-			break;
 		case SEARCH_INDEX:
 			search_index(client, request);
 			break;

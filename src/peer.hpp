@@ -49,8 +49,7 @@ class DecentralizedPeer : public IPeer {
         std::mutex query_map_lock;
         std::unordered_map<int, conn_t> received_queries;
         std::vector<conn_t> neighbors;
-        void broadcast_query(conn_t sender, msg_t message);
-        void backtrace_response(conn_t sender, msg_t message);
+        void broadcast_query(conn_t sender, msg_t* message, msg_t* response);
         void send_file(conn_t, msg_t);
         void search_index(conn_t, msg_t);
         void message_handler(conn_t, msg_t);

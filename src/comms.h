@@ -23,6 +23,7 @@ enum msg_type {
 	REPLICATION_REQ	= -5,
 	STATUS_OK		= -6,
 	STATUS_BAD		= -7,
+	DUP_REQUEST		= -7,
 };
 
 typedef struct {
