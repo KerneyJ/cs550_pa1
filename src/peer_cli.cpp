@@ -142,15 +142,18 @@ int parse_conn_arg(int argc, char** argv, int idx, conn_t* conn) {
 }
 
 int main(int argc, char** argv) {
+	int arg_num = 1;
 
 	#ifdef CENTRALIZED_PEER
 		conn_t index_server;
 
-		if (parse_conn_arg(argc, argv, 1, &index_server) < 0) {
+		if (parse_conn_arg(argc, argv, arg_num, &index_server) < 0) {
 			printf("Please provide the ip and port that the index server is running on.\n");
 			printf("\teg: ./bin/peer 185.236.36.234:8080\n");
 			return -1;
 		}
+
+		arg_num++;
 
 		peer = new CentralizedPeer(index_server);
 
@@ -165,13 +168,23 @@ int main(int argc, char** argv) {
 		menu_labels[4] = "📦 Request a file to download from the network.";
 		menu_labels[9] = "👋 Quit!";
 	#elif DECENTRALIZED_PEER
-		if(argc < 2)  {
-			printf("Please provide a vm id.\n");
-			printf("\teg: ./bin/peer <VM_ID>\n");
+		if(argc < arg_num + 1)  {
+			printf("Please provide a vm id and topology configuration file.\n");
+			printf("\teg: ./bin/peer <VM_ID> <TOPOLOGY_CFG>\n");
 			return -1;
 		}
 
-		peer = new DecentralizedPeer(atoi(argv[1]));
+		arg_num++;
+
+		if(argc < arg_num + 1)  {
+			printf("Please provide a topology configuration file.\n");
+			printf("\teg: ./bin/peer <VM_ID> <TOPOLOGY_CFG>\n");
+			return -1;
+		}
+
+		arg_num++;
+
+		peer = new DecentralizedPeer(atoi(argv[arg_num]));
 
 		menu_items[1] = search_for_file;
 		menu_items[2] = request_file;
@@ -181,6 +194,15 @@ int main(int argc, char** argv) {
 		menu_labels[9] = "👋 Quit!";
 	#endif
 
-	launch_cli();
+	// no more arguments, launch in cli mode
+	if(argc == arg_num) {
+		launch_cli();
+		return 0;
+	}
+	
+	// parse benchmark arguments
+	int benchmark_id = atoi(argv[arg_num]);
+	printf("Starting benchmark number %d.\n", benchmark_id);
+
 	return 0;
 }
