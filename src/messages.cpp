@@ -102,13 +102,19 @@ void parse_message(msg_t* msg, std::string* str, conn_t* conn) {
 }
 
 void parse_message(msg_t* msg, int* id, conn_t* conn) {
-
+	int *ibuf = (int*) msg->buf;
+	*id = ibuf[0];
+	conn->addr = ibuf[1];
+	conn->port = ibuf[2];
 }
 
 void parse_message(msg_t* msg, int* id, std::string* str) {
-
+	int *ibuf = (int*) msg->buf;
+	*id = ibuf[0];
+	str->assign(msg->buf + sizeof(int), msg->buf + msg->size);
 }
 
 void parse_message(msg_t* msg, int* id) {
-
+	int *ibuf = (int*) msg->buf;
+	*id = ibuf[0];
 }
