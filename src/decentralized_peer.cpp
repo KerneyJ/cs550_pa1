@@ -160,6 +160,10 @@ conn_t DecentralizedPeer::search_for_file(std::string filename) {
 	msg_t request, response;
 	conn_t peer;
 
+	// The file is on this peer
+	if(file_set.find(filename) != file_set.end())
+		return server.get_conn_info();
+
 	msg_id = get_message_id();
 	create_message(&request, msg_id, filename, SEARCH_INDEX);
 
