@@ -14,7 +14,7 @@ D_PEER=d_peer
 IDXSVR=index_server.cpp
 TEST=test.c
 C_SRCS=comms.c
-CPP_SRCS=server.cpp thread_pool.cpp file_index.cpp messages.cpp centralized_peer.cpp decentralized_peer.cpp
+CPP_SRCS=server.cpp thread_pool.cpp file_index.cpp messages.cpp centralized_peer.cpp decentralized_peer.cpp benchmarks.cpp
 C_OBJS=$(C_SRCS:.c=.o)
 CPP_OBJS=$(CPP_SRCS:.cpp=.o)
 

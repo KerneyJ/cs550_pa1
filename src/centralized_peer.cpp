@@ -1,5 +1,3 @@
-#include "peer.hpp"
-#include "thread_pool.hpp"
 #include <cstring>
 #include <functional>
 #include <stdio.h>
@@ -7,18 +5,27 @@
 #include <dirent.h>
 #include <string>
 #include <cstring>
+
+#include "peer.hpp"
 #include "constants.hpp" 
 #include "messages.hpp"
+#include "file_index.hpp"
+#include "thread_pool.hpp"
 
 #define MAX_DIR_NAME_SIZE 1024
 
-CentralizedPeer::CentralizedPeer(conn_t index_server) {
+CentralizedPeer::CentralizedPeer(unsigned char peer_id, conn_t index_server) {
+	this->peer_id = peer_id;
 	this->index_server = index_server;
 
    	auto fp = std::bind(&CentralizedPeer::message_handler, this, std::placeholders::_1, std::placeholders::_2);
 	server.start(fp, false);
 	
 	register_user();
+}
+
+unsigned char CentralizedPeer::get_id() {
+	return peer_id;
 }
 
 int CentralizedPeer::register_user() {
