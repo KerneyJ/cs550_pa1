@@ -18,6 +18,11 @@ DecentralizedPeer::DecentralizedPeer(unsigned char peer_id, std::string adjacenc
 	this->init_neighbors(adjacency_config);
 	this->init_fileset();
 
+	for(auto neighbor : neighbors) {
+		unsigned char* ip = (unsigned char*) &neighbor.addr;
+		printf("neighbor at: %d.%d.%d.%d:%d\n", ip[0], ip[1], ip[2], ip[3], neighbor.port);
+	}
+
 	auto fp = std::bind(&DecentralizedPeer::message_handler, this, std::placeholders::_1, std::placeholders::_2);
 	server.start(fp, false);
 }
@@ -62,6 +67,9 @@ void DecentralizedPeer::init_neighbors(std::string adjacency_config) {
 		clntinit_conn(&conn, ip_cstr, port);
 		this->neighbors.push_back(conn);
 	}
+
+	if(neighbors.size() == 0) 
+		printf("Warning! Could not find any neighbors\n");
 }
 
 void DecentralizedPeer::init_fileset() {
@@ -99,6 +107,9 @@ void DecentralizedPeer::broadcast_query(conn_t sender, msg_t* message, msg_t* qu
 			continue;
 
 		threads.emplace_back(std::thread([neighbor, message, &query_response] () {
+			unsigned char* ip = (unsigned char*) &neighbor.addr;
+			printf("Sending message to neighbor: %d.%d.%d.%d:%d\n", ip[0], ip[1], ip[2], ip[3], neighbor.port);
+
 			msg_t response = send_and_recv(neighbor, *message);
 
 			// we don't lock bc only one response should ever backtrace
@@ -160,9 +171,13 @@ conn_t DecentralizedPeer::search_for_file(std::string filename) {
 	msg_t request, response;
 	conn_t peer;
 
+	printf("Searching for file...\n");
+
 	// The file is on this peer
 	if(file_set.find(filename) != file_set.end())
 		return server.get_conn_info();
+
+	printf("File not found locally...\n");
 
 	msg_id = get_message_id();
 	create_message(&request, msg_id, filename, SEARCH_INDEX);
@@ -172,14 +187,19 @@ conn_t DecentralizedPeer::search_for_file(std::string filename) {
 		received_queries.insert({ msg_id, server.get_conn_info() });
 	}
 
+	printf("Broadcasting query...\n");
+
 	broadcast_query(server.get_conn_info(), &request, &response);
 	delete_msg(&request);
 
 	if(response.type == STATUS_OK) {
+		printf("Got a valid response from the broadcast!\n");
 		parse_message(&response, &msg_id,  &peer);
 		delete_msg(&response);
 		return peer;
 	}
+
+	printf("Nobody had the file. :(\n");
 
 	delete_msg(&response);
 	return { -1, -1, -1 };
