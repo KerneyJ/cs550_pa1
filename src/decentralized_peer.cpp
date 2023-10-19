@@ -46,8 +46,9 @@ void DecentralizedPeer::init_neighbors(std::string adjacency_config) {
 		if(std::stoi(line.substr(0, line.find(','))) == this->peer_id){
 			std::string nebstr = line.substr(line.find(":")+1), temp;
 			std::stringstream s(nebstr);
-			while(std::getline(s, temp, ','))
+			while(std::getline(s, temp, ',')) {
 				nebvec.push_back(std::stoi(temp));
+			}
 		}
 	}
 
@@ -57,14 +58,12 @@ void DecentralizedPeer::init_neighbors(std::string adjacency_config) {
 		if(std::find(nebvec.begin(), nebvec.end(), std::stoi(id)) == nebvec.end())
 			continue;
 
-		printf("got an id that we need to connect to\n");
-		std::string addr = line.substr(line.find(","));
-		std::string ip = addr.substr(1, line.find(":")-2);
-		int port = std::stoi(addr.substr(line.find(":")));
 		conn_t conn;
-		char ip_cstr[256] = {0};
-		memcpy(ip_cstr, ip.c_str(), ip.size());
-		clntinit_conn(&conn, ip_cstr, port);
+		std::string ip = line.substr(line.find(",")+1);
+
+		conn.addr = inet_addr(ip.data());
+		conn.port = FIXED_PORT;
+
 		this->neighbors.push_back(conn);
 	}
 

@@ -1,4 +1,3 @@
-#include <arpa/inet.h>
 #include <cstddef>
 #include <cstring>
 #include <exception>
