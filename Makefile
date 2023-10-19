@@ -1,7 +1,8 @@
 CC=gcc
 CPP=g++
 
-CPP_FLAGS=
+CFLAGS=
+CPP_FLAGS=-pthread
 
 BIN_DIR=bin
 OBJ_DIR=obj
@@ -15,7 +16,6 @@ TEST=test.c
 C_SRCS=comms.c
 CPP_SRCS=server.cpp thread_pool.cpp file_index.cpp messages.cpp centralized_peer.cpp decentralized_peer.cpp
 C_OBJS=$(C_SRCS:.c=.o)
-CFLAGS=
 CPP_OBJS=$(CPP_SRCS:.cpp=.o)
 
 ifeq ($(DEBUG),true)
