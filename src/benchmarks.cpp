@@ -3,6 +3,7 @@
 #include <chrono>
 #include <thread>
 #include <string>
+#include <unistd.h>
 
 #include "benchmarks.hpp"
 #include "peer.hpp"
@@ -18,6 +19,7 @@ static void create_file_name(char* filename, int vm_id, int file_number, const c
 }
 
 void run_benchmark(IPeer* peer, int benchmark_id) {
+    sleep(10);
 
     switch(benchmark_id) {
         case 1:
