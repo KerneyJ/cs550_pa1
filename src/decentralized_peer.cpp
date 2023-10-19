@@ -54,6 +54,9 @@ void DecentralizedPeer::init_neighbors(std::string adjacency_config) {
 
 	// Parse peer ip config
 	while(std::getline(pipfile, line)){
+		if(line.find(",") == std::string::npos)
+			continue;
+
 		std::string id = line.substr(0, line.find(","));
 		if(std::find(nebvec.begin(), nebvec.end(), std::stoi(id)) == nebvec.end())
 			continue;
