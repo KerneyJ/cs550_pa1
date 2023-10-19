@@ -21,7 +21,7 @@ static void register_file(conn_t client, msg_t message);
 static void search_index(conn_t client, msg_t message);
 static void request_replication(conn_t peer_with_file, std::string filename, int replications_left);
 
-static Server server = Server(false);
+static Server server = Server(true);
 static FileIndex file_index;
 
 static std::vector<conn_t> peers;
