@@ -45,6 +45,6 @@ for i in $(seq 1 $num_containers); do
   container_name="vm$i"
   # Replace the following line with the command you want to run within each container example: lxc exec "$container_name" -- /bin/bash -l -c "date"
   lxc file push $(pwd)/peer_ips.csv $container_name/home/root/cs550_pa1/config/
-  eval "lxc exec $container_name -- /home/root/cs550_pa1/scripts/gendata.sh $1" &
+  eval "lxc exec $container_name -- /home/root/cs550_pa1/scripts/gendata.sh $i /home/root/cs550_pa1" &
 done
 
