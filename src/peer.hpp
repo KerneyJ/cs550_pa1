@@ -53,11 +53,11 @@ class DecentralizedPeer : public IPeer {
         void send_file(conn_t, msg_t);
         void search_index(conn_t, msg_t);
         void message_handler(conn_t, msg_t);
-        void init_neighbors();
+        void init_neighbors(std::string adjacency_config);
         void init_fileset();
         int get_message_id();
     public:
-        DecentralizedPeer(unsigned char peer_id);
+        DecentralizedPeer(unsigned char peer_id, std::string adjacency_config);
         int register_user();
         int register_directory(std::string);
         int register_file(std::string);

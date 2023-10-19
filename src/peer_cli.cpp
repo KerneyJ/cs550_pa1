@@ -142,18 +142,17 @@ int parse_conn_arg(int argc, char** argv, int idx, conn_t* conn) {
 }
 
 int main(int argc, char** argv) {
-	int arg_num = 1;
+	int arg_num;
 
 	#ifdef CENTRALIZED_PEER
 		conn_t index_server;
+		arg_num = 1;
 
-		if (parse_conn_arg(argc, argv, arg_num, &index_server) < 0) {
+		if (parse_conn_arg(argc, argv, 1, &index_server) < 0) {
 			printf("Please provide the ip and port that the index server is running on.\n");
 			printf("\teg: ./bin/peer 185.236.36.234:8080\n");
 			return -1;
 		}
-
-		arg_num++;
 
 		peer = new CentralizedPeer(index_server);
 
@@ -168,13 +167,13 @@ int main(int argc, char** argv) {
 		menu_labels[4] = "📦 Request a file to download from the network.";
 		menu_labels[9] = "👋 Quit!";
 	#elif DECENTRALIZED_PEER
+		arg_num = 2;
+
 		if(argc < arg_num + 1)  {
 			printf("Please provide a vm id and topology configuration file.\n");
 			printf("\teg: ./bin/peer <VM_ID> <TOPOLOGY_CFG>\n");
 			return -1;
 		}
-
-		arg_num++;
 
 		if(argc < arg_num + 1)  {
 			printf("Please provide a topology configuration file.\n");
@@ -182,9 +181,7 @@ int main(int argc, char** argv) {
 			return -1;
 		}
 
-		arg_num++;
-
-		peer = new DecentralizedPeer(atoi(argv[arg_num]));
+		peer = new DecentralizedPeer(atoi(argv[1]), argv[2]);
 
 		menu_items[1] = search_for_file;
 		menu_items[2] = request_file;
@@ -195,13 +192,13 @@ int main(int argc, char** argv) {
 	#endif
 
 	// no more arguments, launch in cli mode
-	if(argc == arg_num) {
+	if(argc == arg_num + 1) {
 		launch_cli();
 		return 0;
 	}
 	
 	// parse benchmark arguments
-	int benchmark_id = atoi(argv[arg_num]);
+	int benchmark_id = atoi(argv[arg_num + 1]);
 	printf("Starting benchmark number %d.\n", benchmark_id);
 
 	return 0;

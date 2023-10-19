@@ -1,26 +1,62 @@
-#include "peer.hpp"
-#include "messages.hpp"
+#include <vector>
 #include <mutex>
 #include <stdexcept>
-#include "constants.hpp"
 #include <dirent.h>
 #include <string>
 #include <thread>
-#include <vector>
+#include <fstream>
+#include <sstream>
 
-DecentralizedPeer::DecentralizedPeer(unsigned char peer_id) {
+#include "peer.hpp"
+#include "messages.hpp"
+#include "constants.hpp"
+
+DecentralizedPeer::DecentralizedPeer(unsigned char peer_id, std::string adjacency_config) {
 	this->peer_id = peer_id;
 
-	init_neighbors();
-	init_fileset();
+	this->init_neighbors(adjacency_config);
+	this->init_fileset();
 
-   	auto fp = std::bind(&DecentralizedPeer::message_handler, this, std::placeholders::_1, std::placeholders::_2);
+	auto fp = std::bind(&DecentralizedPeer::message_handler, this, std::placeholders::_1, std::placeholders::_2);
 	server.start(fp, false);
 }
 
-void DecentralizedPeer::init_neighbors() {
-	// TODO: use peer id to initialize neighbor list
-	// ADJACENCY_CONFIG_PATH & PEER_IP_CONFIG_PATH defined in constants.hpp
+void DecentralizedPeer::init_neighbors(std::string adjacency_config) {
+	/* 
+	* Adjacency matrix Structure:
+	* id: neighbors
+	*/
+	std::string line;
+	std::vector<int> nebvec;
+	std::ifstream adjfile(adjacency_config);
+	std::ifstream pipfile(PEER_IP_CONFIG_PATH);
+
+	// Parse adjacency file
+	while(std::getline(adjfile, line)){
+		if(std::stoi(line.substr(0, line.find(','))) == this->peer_id){
+			std::string nebstr = line.substr(line.find(":")+1), temp;
+			std::stringstream s(nebstr);
+			while(std::getline(s, temp, ','))
+				nebvec.push_back(std::stoi(temp));
+		}
+	}
+
+	// Parse peer ip config
+	while(std::getline(pipfile, line)){
+		std::string id = line.substr(0, line.find(","));
+		if(std::find(nebvec.begin(), nebvec.end(), std::stoi(id)) == nebvec.end())
+			continue;
+
+		printf("got an id that we need to connect to\n");
+		std::string addr = line.substr(line.find(","));
+		std::string ip = addr.substr(1, line.find(":")-2);
+		int port = std::stoi(addr.substr(line.find(":")));
+		conn_t conn;
+		char ip_cstr[256] = {0};
+		memcpy(ip_cstr, ip.c_str(), ip.size());
+		clntinit_conn(&conn, ip_cstr, port);
+		this->neighbors.push_back(conn);
+	}
 }
 
 void DecentralizedPeer::init_fileset() {
@@ -76,9 +112,9 @@ void DecentralizedPeer::broadcast_query(conn_t sender, msg_t* message, msg_t* qu
 void DecentralizedPeer::search_index(conn_t client, msg_t request) {
 	msg_t response;
 	int msg_id;
-    std::string filename;
+	std::string filename;
 
-    parse_message(&request, &msg_id, &filename);
+	parse_message(&request, &msg_id, &filename);
 
 	{
 		// Check if we have already seen this message
@@ -111,7 +147,7 @@ void DecentralizedPeer::send_file(conn_t client, msg_t request) {
 }
 
 int DecentralizedPeer::request_file(std::string filename) {
-    return -1;
+	return -1;
 }
 
 conn_t DecentralizedPeer::search_for_file(std::string filename) {
@@ -161,13 +197,13 @@ void DecentralizedPeer::message_handler(conn_t client, msg_t request) {
 /*** Implementation necessary for interface. ***/
 
 int DecentralizedPeer::register_user() {
-    throw std::logic_error("Function not implemented for decentralized peer.");
+	throw std::logic_error("Function not implemented for decentralized peer.");
 }
 
 int DecentralizedPeer::register_directory(std::string) {
-    throw std::logic_error("Function not implemented for decentralized peer.");
+	throw std::logic_error("Function not implemented for decentralized peer.");
 }
 
 int DecentralizedPeer::register_file(std::string) {
-    throw std::logic_error("Function not implemented for decentralized peer.");
+	throw std::logic_error("Function not implemented for decentralized peer.");
 }

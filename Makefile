@@ -47,6 +47,7 @@ dir:
 	mkdir -p bin
 	mkdir -p obj
 	mkdir -p data
+	mkdir -p config
 
 clean:
 	rm -f $(BIN_DIR)/*
