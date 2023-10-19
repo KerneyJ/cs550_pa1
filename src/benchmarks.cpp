@@ -19,15 +19,25 @@ static void create_file_name(char* filename, int vm_id, int file_number, const c
 }
 
 void run_benchmark(IPeer* peer, int benchmark_id) {
+	printf("Starting benchmark number %d in 10 seconds.\n", benchmark_id);
     sleep(10);
 
     switch(benchmark_id) {
         case 1:
+            if(peer->get_id() != 1)
+                return;
+            return test_query(peer, 10000, 16, "10K");
         case 2:
+            if(peer->get_id() > 9)
+                return;
             return test_query(peer, 10000, 16, "10K");
         case 3:
+            if(peer->get_id() > 9)
+                return;
             return test_transfer(peer, 10000, 16, "10K");
         case 4:
+            if(peer->get_id() > 9)
+                return;
             return test_transfer(peer, 10, 16, "10M");
         default:
             printf("Unknown benchmark id.\n");
