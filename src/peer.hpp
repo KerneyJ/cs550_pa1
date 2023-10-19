@@ -9,12 +9,14 @@ extern "C" {
 }
 
 #include "server.hpp"
-#include "file_index.hpp"
+
+#pragma once
 
 class IPeer
 {
     public:
         virtual ~IPeer() {}
+        virtual unsigned char get_id() = 0;
         virtual int register_user() = 0;
         virtual int register_directory(std::string) = 0;
         virtual int register_file(std::string) = 0;
@@ -24,6 +26,7 @@ class IPeer
 
 class CentralizedPeer : public IPeer {
     private:
+        unsigned char peer_id;
         Server server = Server(false);;
         conn_t index_server;
         int request_file(conn_t, std::string);
@@ -31,7 +34,8 @@ class CentralizedPeer : public IPeer {
         int replicate_file(conn_t, msg_t);
         void message_handler(conn_t, msg_t);
     public:
-        CentralizedPeer(conn_t index_server);
+        CentralizedPeer(unsigned char peer_id, conn_t index_server);
+        unsigned char get_id();
         int register_user();
         int register_directory(std::string);
         int register_file(std::string);
@@ -58,6 +62,7 @@ class DecentralizedPeer : public IPeer {
         int get_message_id();
     public:
         DecentralizedPeer(unsigned char peer_id, std::string adjacency_config);
+        unsigned char get_id();
         int register_user();
         int register_directory(std::string);
         int register_file(std::string);

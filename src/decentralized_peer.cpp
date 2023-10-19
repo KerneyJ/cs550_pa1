@@ -21,6 +21,10 @@ DecentralizedPeer::DecentralizedPeer(unsigned char peer_id, std::string adjacenc
 	server.start(fp, false);
 }
 
+unsigned char DecentralizedPeer::get_id() {
+	return peer_id;
+}
+
 void DecentralizedPeer::init_neighbors(std::string adjacency_config) {
 	/* 
 	* Adjacency matrix Structure:

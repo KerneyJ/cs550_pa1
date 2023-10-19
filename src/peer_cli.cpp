@@ -142,19 +142,18 @@ int parse_conn_arg(int argc, char** argv, int idx, conn_t* conn) {
 }
 
 int main(int argc, char** argv) {
-	int arg_num;
 
 	#ifdef CENTRALIZED_PEER
 		conn_t index_server;
-		arg_num = 1;
 
-		if (parse_conn_arg(argc, argv, 1, &index_server) < 0) {
-			printf("Please provide the ip and port that the index server is running on.\n");
-			printf("\teg: ./bin/peer 185.236.36.234:8080\n");
+		if (argc < 3 || parse_conn_arg(argc, argv, 2, &index_server) < 0) {
+			printf("Please provide a vm id and the ip and port that the index server is running on.\n");
+			printf("\teg: ./bin/c_peer <VM_ID> <IDX_SERVER>\n");
+			printf("\teg: ./bin/c_peer 1 185.236.36.234:8080\n");
 			return -1;
 		}
 
-		peer = new CentralizedPeer(index_server);
+		peer = new CentralizedPeer(atoi(argv[1]), index_server);
 
 		menu_items[1] = register_directory;
 		menu_items[2] = register_file;
@@ -167,17 +166,10 @@ int main(int argc, char** argv) {
 		menu_labels[4] = "📦 Request a file to download from the network.";
 		menu_labels[9] = "👋 Quit!";
 	#elif DECENTRALIZED_PEER
-		arg_num = 2;
 
-		if(argc < arg_num + 1)  {
+		if(argc < 3)  {
 			printf("Please provide a vm id and topology configuration file.\n");
-			printf("\teg: ./bin/peer <VM_ID> <TOPOLOGY_CFG>\n");
-			return -1;
-		}
-
-		if(argc < arg_num + 1)  {
-			printf("Please provide a topology configuration file.\n");
-			printf("\teg: ./bin/peer <VM_ID> <TOPOLOGY_CFG>\n");
+			printf("\teg: ./bin/d_peer <VM_ID> <TOPOLOGY_CFG>\n");
 			return -1;
 		}
 
@@ -192,14 +184,20 @@ int main(int argc, char** argv) {
 	#endif
 
 	// no more arguments, launch in cli mode
-	if(argc == arg_num + 1) {
+	if(argc < 4) {
 		launch_cli();
 		return 0;
 	}
+
+	#ifdef CENTRALIZED_PEER
+		peer->register_directory(SHARED_FILE_DIR);
+	#endif
 	
-	// parse benchmark arguments
-	int benchmark_id = atoi(argv[arg_num + 1]);
+	// parse benchmark id	
+	int benchmark_id = atoi(argv[3]);
 	printf("Starting benchmark number %d.\n", benchmark_id);
+
+	run_benchmark(peer, benchmark_id);
 
 	return 0;
 }
