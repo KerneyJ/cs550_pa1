@@ -51,7 +51,7 @@ void ThreadPool::thread_loop() {
 
     while(true) {
         {
-            std::unique_lock work_lock(queue_lock);
+            std::unique_lock<std::mutex> work_lock(queue_lock);
             notify_work.wait(work_lock, [this]{ 
                 return !work_queue.empty() || interrupt;
             });
