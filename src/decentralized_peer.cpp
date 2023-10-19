@@ -6,6 +6,7 @@
 #include <thread>
 #include <fstream>
 #include <sstream>
+#include <algorithm>
 
 #include "peer.hpp"
 #include "messages.hpp"
