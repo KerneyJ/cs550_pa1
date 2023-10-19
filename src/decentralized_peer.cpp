@@ -8,6 +8,7 @@
 #include <sstream>
 #include <algorithm>
 
+#include "comms.h"
 #include "peer.hpp"
 #include "messages.hpp"
 #include "constants.hpp"
@@ -134,26 +135,39 @@ void DecentralizedPeer::search_index(conn_t client, msg_t request) {
 
 	parse_message(&request, &msg_id, &filename);
 
+	printf("Received request for file: %s. (msg %d)\n", filename.c_str(), msg_id);
+
 	{
 		// Check if we have already seen this message
 		std::unique_lock<std::mutex> lock(query_map_lock);
-		if(received_queries.find(msg_id) != received_queries.end())
+		if(received_queries.find(msg_id) != received_queries.end()) {
+			printf("Duplicate request (msg %d)\n", msg_id);
+			create_message(&response, DUP_REQUEST);
+			send_msg(response, client);
+			delete_msg(&response);
 			return;
+		}
 
 		received_queries.insert({ msg_id, { client.addr, FIXED_PORT } });
 	}
 
 	// Check if we have the file. if not, broadcast this message
     if(file_set.find(filename) == file_set.end()) {
+		printf("File not here, broadcasting query to the homies...\n");
         broadcast_query(client, &request, &response);
 
-		if(response.type == NULL_MSG)
+		if(response.type == NULL_MSG) {
+			printf("Homies didn't have it...\n");
 			create_message(&response, DUP_REQUEST);
+		}
 
+		printf("Forward the response\n");
 		send_msg(response, client);
 		delete_msg(&response);
         return;
     }
+
+	printf("We have the file!\n");
 
 	create_message(&response, msg_id, server.get_conn_info(), STATUS_OK);
     send_msg(response, client);
