@@ -34,17 +34,12 @@ done
 sleep 10
 
 $(pwd)/get_ips.sh
-#echo "" > $(pwd)/peer_ips.csv
-#for i in {1..19}; do
-#	IP=$(lxc exec "vm$i" -- ip a show scope global | grep -Po "inet \K[0-9]*\.[0-9]*\.[0-9]*\.[0-9]*" | head -1);
-#	echo "$i,$IP" >> $(pwd)/peer_ips.csv
-#done
 
 # Control the containers
 for i in $(seq 1 $num_containers); do
   container_name="vm$i"
   # Replace the following line with the command you want to run within each container example: lxc exec "$container_name" -- /bin/bash -l -c "date"
-  lxc file push $(pwd)/peer_ips.csv $container_name/home/root/cs550_pa1/config/
+  lxc file push $(pwd)/peer-ips.csv $container_name/home/root/cs550_pa1/config/
   eval "lxc exec $container_name -- /home/root/cs550_pa1/scripts/gendata.sh $i /home/root/cs550_pa1" &
 done
 
