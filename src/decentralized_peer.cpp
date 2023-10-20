@@ -127,6 +127,68 @@ void DecentralizedPeer::broadcast_query(conn_t sender, msg_t* message, msg_t* qu
 		thread.join();
 }
 
+void DecentralizedPeer::send_file(conn_t client, msg_t request) {
+	msg_t response, error;
+	char path[256] = {0};
+
+	sprintf(path, "%s/", SHARED_FILE_DIR);
+	memcpy(path + strlen(SHARED_FILE_DIR) + 1, request.buf, request.size);
+
+	if (createfile_msg(&response, path) < 0) {
+		create_message(&error, STATUS_BAD);
+		send_msg(error, client);
+		delete_msg(&error);
+
+		printf("File could not be sent! Path=%s\n", path);
+		return;
+	}
+
+	send_msg(response, client);
+	delete_msg(&response);
+
+#ifdef DEBUG
+	printf("File successfully sent!\n");
+#endif
+
+	return;
+}
+
+int DecentralizedPeer::request_file(std::string filename) {
+	conn_t peer;
+	msg_t request, response;
+
+	peer = search_for_file(filename);
+
+	if(peer.addr == -1) {
+		printf("No peers with requested file.\n");
+		return -1;
+	}
+
+	create_message(&request, filename, REQUEST_FILE);
+
+	response = send_and_recv(peer, request);
+	delete_msg(&request);
+
+	if(response.type == NULL_MSG) {
+		delete_msg(&response);
+		printf("Message failed to receive.\n");
+		return -1;
+	}
+
+	if(response.type == STATUS_BAD) {
+		delete_msg(&response);
+		printf("Peer did not have requested file.\n");
+		return -1;
+	}
+
+#ifdef DEBUG
+	printf("File successfully downloaded!\n");
+#endif
+
+	delete_msg(&response);
+	return 0;
+}
+
 void DecentralizedPeer::search_index(conn_t client, msg_t request) {
 	msg_t response;
 	int msg_id;
@@ -171,98 +233,6 @@ void DecentralizedPeer::search_index(conn_t client, msg_t request) {
 	create_message(&response, msg_id, server.get_conn_info(), STATUS_OK);
     send_msg(response, client);
 	delete_msg(&response);
-}
-
-void DecentralizedPeer::send_file(conn_t client, msg_t request) {
-	msg_t response;
-	int msg_id;
-	std::string filename;
-
-	parse_message(&request, &msg_id, &filename);
-
-	printf("Received request for file: %s. (msg %d)\n", filename.c_str(), msg_id);
-
-	{
-		// Check if we have already seen this message
-		std::unique_lock<std::mutex> lock(query_map_lock);
-		if(received_queries.find(msg_id) != received_queries.end()) {
-			printf("Duplicate request (msg %d)\n", msg_id);
-			create_message(&response, DUP_REQUEST);
-			send_msg(response, client);
-			delete_msg(&response);
-			return;
-		}
-
-		received_queries.insert({ msg_id, { client.addr, FIXED_PORT } });
-	}
-
-	// Check if we have the file. if not, broadcast this message
-    if(file_set.find(filename) == file_set.end()) {
-		printf("File not here, broadcasting query to the homies...\n");
-        broadcast_query(client, &request, &response);
-
-		if(response.type == NULL_MSG) {
-			printf("Homies didn't have it...\n");
-			create_message(&response, DUP_REQUEST);
-			send_msg(response, client);
-			return;
-		}
-
-		delete_msg(&response);
-
-		printf("Forward the response\n");
-		char cfilename[] = {0};
-		memcpy(cfilename, filename.data(), filename.length());
-		send_msg(response, client);
-        return;
-    }
-
-	printf("We have the file!\n");
-
-	char cfilename[] = {0};
-	memcpy(cfilename, filename.data(), filename.length());
-
-	createfile_msg(&response, cfilename);
-    send_msg(response, client);
-	delete_msg(&response);
-}
-
-int DecentralizedPeer::request_file(std::string filename) {
-	int msg_id;
-	msg_t request, response;
-	conn_t peer;
-
-	printf("Searching for file...\n");
-
-	// The file is on this peer
-	if(file_set.find(filename) != file_set.end())
-		return 0;
-
-	printf("File not found locally...\n");
-
-	msg_id = get_message_id();
-	create_message(&request, msg_id, filename, REQUEST_FILE);
-
-	{
-		std::unique_lock<std::mutex> lock(query_map_lock);
-		received_queries.insert({ msg_id, server.get_conn_info() });
-	}
-
-	printf("Broadcasting query...\n");
-
-	broadcast_query(server.get_conn_info(), &request, &response);
-	delete_msg(&request);
-
-	if(response.type == STATUS_OK) {
-		printf("Got a valid response from the broadcast!\n");
-		delete_msg(&response);
-		return 0;
-	}
-
-	printf("Nobody had the file. :(\n");
-
-	delete_msg(&response);
-	return -1;
 }
 
 conn_t DecentralizedPeer::search_for_file(std::string filename) {
