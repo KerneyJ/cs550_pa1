@@ -93,7 +93,7 @@ int Server::start(msg_func message_handler, bool blocking) {
 		});
 	}
 
-    return -1;
+    return 0;
 }
 
 conn_t Server::get_conn_info() {
