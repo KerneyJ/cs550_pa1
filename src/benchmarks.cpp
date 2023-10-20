@@ -46,6 +46,8 @@ void run_benchmark(IPeer* peer, int benchmark_id) {
         default:
             printf("Unknown benchmark id.\n");
     }
+
+    sleep(60);
 }
 
 void test_query(IPeer* peer, const int num_files, const int num_peers, const char* file_size) {
