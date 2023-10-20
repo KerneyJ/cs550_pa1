@@ -25,12 +25,12 @@ void run_benchmark(IPeer* peer, int benchmark_id) {
     switch(benchmark_id) {
         case 1:
             if(peer->get_id() == 1)
-                return test_query(peer, 1, 16, "10K");
+                return test_query(peer, 10000, 16, "10K");
             sleep(100000000);
             break;
         case 2:
             if(peer->get_id() <= 9)
-                return test_query(peer, 1, 16, "10K");
+                return test_query(peer, 10000, 16, "10K");
             sleep(100000000);
             break;
         case 3:
