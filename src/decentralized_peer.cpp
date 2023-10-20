@@ -1,3 +1,4 @@
+#include <exception>
 #include <vector>
 #include <mutex>
 #include <stdexcept>
@@ -19,7 +20,9 @@ DecentralizedPeer::DecentralizedPeer(unsigned char peer_id, std::string adjacenc
 	this->init_fileset();
 
 	auto fp = std::bind(&DecentralizedPeer::message_handler, this, std::placeholders::_1, std::placeholders::_2);
-	server.start(fp, false);
+	
+	if(server.start(fp, false) < 0)
+		throw std::logic_error("Server could not bind.");
 }
 
 unsigned char DecentralizedPeer::get_id() {
