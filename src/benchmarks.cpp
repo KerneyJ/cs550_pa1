@@ -49,7 +49,8 @@ void run_benchmark(IPeer* peer, int benchmark_id) {
 }
 
 void test_query(IPeer* peer, const int num_files, const int num_peers, const char* file_size) {
-    int vm_id;
+    int vm_id, failures = 0;
+    conn_t res;
     char filename[256] = {0};
     time_point<high_resolution_clock> t1, t2;
 
@@ -59,13 +60,17 @@ void test_query(IPeer* peer, const int num_files, const int num_peers, const cha
     for(int i = 0; i < num_files; i++) {
         vm_id = rand() % num_peers;
         create_file_name(filename, vm_id, i, file_size);
-        peer->search_for_file(filename);
+        res = peer->search_for_file(filename);
+
+        if(res.addr == -1)
+            failures++;
     }
 
     t2 = high_resolution_clock::now();
     auto elapsed_time_us = duration_cast<microseconds>(t2 - t1);
 
     printf("Searched for %d files in %ld us \n", num_files, elapsed_time_us.count());
+    printf("Failed %d/%d times.\n", failures, num_files);
 }
 
 void test_transfer(IPeer* peer, const int num_files, const int num_peers, const char* file_size) {
