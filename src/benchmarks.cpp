@@ -24,21 +24,25 @@ void run_benchmark(IPeer* peer, int benchmark_id) {
 
     switch(benchmark_id) {
         case 1:
-            if(peer->get_id() != 1)
-                return;
-            return test_query(peer, 1, 16, "10K");
+            if(peer->get_id() == 1)
+                return test_query(peer, 1, 16, "10K");
+            sleep(100000000);
+            break;
         case 2:
-            if(peer->get_id() > 9)
-                return;
-            return test_query(peer, 1, 16, "10K");
+            if(peer->get_id() <= 9)
+                return test_query(peer, 1, 16, "10K");
+            sleep(100000000);
+            break;
         case 3:
-            if(peer->get_id() > 9)
-                return;
-            return test_transfer(peer, 10000, 16, "10K");
+            if(peer->get_id() <= 9)
+                return test_transfer(peer, 10000, 16, "10K");
+            sleep(100000000);
+            break;
         case 4:
-            if(peer->get_id() > 9)
-                return;
-            return test_transfer(peer, 10, 16, "10M");
+            if(peer->get_id() <= 9)
+                return test_transfer(peer, 10, 16, "10M");
+            sleep(100000000);
+            break;
         default:
             printf("Unknown benchmark id.\n");
     }
