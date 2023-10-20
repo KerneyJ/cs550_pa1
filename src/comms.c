@@ -43,7 +43,8 @@ int servinit_conn(conn_t* conn, char* ip, int port){
 		return -1;
 	}
 #ifdef DEBUG
-	printf("[+]Server socket created successfully at %s:%d.\n", ip, port);
+	unsigned char* ip2 = (unsigned char*) &conn->addr;
+	printf("[+]Server socket created successfully at %d.%d.%d.%d:%d\n", ip2[0], ip2[1], ip2[2], ip2[3], conn->port);
 #endif
 	serv_addr.sin_family = AF_INET;
 	serv_addr.sin_port = conn->port;
@@ -70,7 +71,8 @@ int servinitco_conn(conn_t* conn, conn_t* data){
 		return -1;
 	}
 #ifdef DEBUG
-	printf("[+]Server socket created successfully at %d:%d.\n", conn->addr, conn->port);
+	unsigned char* ip2 = (unsigned char*) &conn->addr;
+	printf("[+]Server socket created successfully at %d.%d.%d.%d:%d\n", ip2[0], ip2[1], ip2[2], ip2[3], conn->port);
 #endif
 	serv_addr.sin_family = AF_INET;
 	serv_addr.sin_port = conn->port;
@@ -134,8 +136,8 @@ conn_t servacpt_conn(conn_t* conn, volatile int* interrupt){
 	client_conn.addr = client_addr.sin_addr.s_addr;
 	client_conn.port = client_addr.sin_port;
 
-	unsigned char* ip = (unsigned char*)&client_conn.addr;
 #ifdef DEBUG
+	unsigned char* ip = (unsigned char*)&client_conn.addr;
 	printf("[+]Accepted connection at %d.%d.%d.%d:%d\n", ip[0], ip[1], ip[2], ip[3], client_conn.port);
 #endif
 	return client_conn;
@@ -149,7 +151,8 @@ int clntinit_conn(conn_t* conn, char* ip, int port){
 	serv_addr.sin_addr.s_addr = inet_addr(ip);
 	if(connect(conn->sock, (struct sockaddr*)&serv_addr, sizeof(serv_addr)) < 0){
 		char error_string[256];
-		sprintf(error_string,"[-]Error connecting to %s:%d", ip, port);
+		unsigned char* ip2 = (unsigned char*)&ip;
+		sprintf(error_string, "[-]Error connecting to %d.%d.%d.%d:%d\n", ip2[0], ip2[1], ip2[2], ip2[3], port);
 		error_string[255] = 0;
 		perror(error_string);
 		return -1;
@@ -168,7 +171,8 @@ int clntinitco_conn(conn_t* conn, conn_t* srv){
 	serv_addr.sin_addr.s_addr = srv->addr;
 	if(connect(conn->sock, (struct sockaddr*)&serv_addr, sizeof(serv_addr)) < 0){
 		char error_string[256];
-		sprintf(error_string,"[-]Error connecting to %d:%d", srv->addr, srv->port);
+		unsigned char* ip2 = (unsigned char*)&srv->addr;
+		sprintf(error_string, "[-]Error connecting to %d.%d.%d.%d:%d\n", ip2[0], ip2[1], ip2[2], ip2[3], srv->port);
 		error_string[255] = 0;
 		perror(error_string);
 		return -1;
