@@ -42,7 +42,7 @@ int servinit_conn(conn_t* conn, char* ip, int port){
 		perror("[-] Error on socket creation");
 		return -1;
 	}
-#ifdef DEBUG
+#ifdef DEBUG_COMMS
 	unsigned char* ip2 = (unsigned char*) &conn->addr;
 	printf("[+]Server socket created successfully at %d.%d.%d.%d:%d\n", ip2[0], ip2[1], ip2[2], ip2[3], conn->port);
 #endif
@@ -54,7 +54,7 @@ int servinit_conn(conn_t* conn, char* ip, int port){
 		perror("[-]Error in bind");
 		return -1;
 	}
-#ifdef DEBUG
+#ifdef DEBUG_COMMS
 	printf("[+]Binding successfull.\n");
 #endif
 	return 0;
@@ -70,7 +70,7 @@ int servinitco_conn(conn_t* conn, conn_t* data){
 		perror("[-] Error on socket creation");
 		return -1;
 	}
-#ifdef DEBUG
+#ifdef DEBUG_COMMS
 	unsigned char* ip2 = (unsigned char*) &conn->addr;
 	printf("[+]Server socket created successfully at %d.%d.%d.%d:%d\n", ip2[0], ip2[1], ip2[2], ip2[3], conn->port);
 #endif
@@ -82,7 +82,7 @@ int servinitco_conn(conn_t* conn, conn_t* data){
 		perror("[-]Error in bind");
 		return -1;
 	}
-#ifdef DEBUG
+#ifdef DEBUG_COMMS
 	printf("[+]Binding successfull.\n");
 #endif
 	return 0;
@@ -90,7 +90,7 @@ int servinitco_conn(conn_t* conn, conn_t* data){
 
 int servlstn_conn(conn_t* conn, int backlog){
 	if(listen(conn->sock, backlog) == 0)
-#ifdef DEBUG
+#ifdef DEBUG_COMMS
 		printf("[+]Listening...\n");
 #else
 		;
@@ -136,7 +136,7 @@ conn_t servacpt_conn(conn_t* conn, volatile int* interrupt){
 	client_conn.addr = client_addr.sin_addr.s_addr;
 	client_conn.port = client_addr.sin_port;
 
-#ifdef DEBUG
+#ifdef DEBUG_COMMS
 	unsigned char* ip = (unsigned char*)&client_conn.addr;
 	printf("[+]Accepted connection at %d.%d.%d.%d:%d\n", ip[0], ip[1], ip[2], ip[3], client_conn.port);
 #endif
@@ -157,7 +157,7 @@ int clntinit_conn(conn_t* conn, char* ip, int port){
 		perror(error_string);
 		return -1;
 	}
-#ifdef DEBUG
+#ifdef DEBUG_COMMS
 	printf("[+]Connected to Server.\n");
 #endif
 	return 0;
@@ -177,7 +177,7 @@ int clntinitco_conn(conn_t* conn, conn_t* srv){
 		perror(error_string);
 		return -1;
 	}
-#ifdef DEBUG
+#ifdef DEBUG_COMMS
 	printf("[+]Connected to Server.\n");
 #endif
 	return 0;
@@ -234,7 +234,7 @@ int createfile_msg(msg_t* msg, char* path){
 		perror("[-]MMAP error while creating file message\n");
 		return -1;
 	}
-#ifdef DEBUG
+#ifdef DEBUG_COMMS
 	printf("[+]Successfully created a file message\n");
 #endif
 	return 0;
@@ -283,7 +283,7 @@ static void getname(char* absolute_path, int len){
 }
 
 static int sendfile_msg(msg_t msg, conn_t conn){
-#ifdef DEBUG
+#ifdef DEBUG_COMMS
 	printf("[*]Attempting to send file message of size %li + 256(header)\n", msg.size, msg.type);
 #endif
 	long int bytestosend = msg.size;
@@ -318,7 +318,7 @@ static int sendfile_msg(msg_t msg, conn_t conn){
 	bzero(sendbuf, sizeof(sendbuf));
 	bytestosend -= (sizeof(sendbuf) - headersize); // number of bytes left in msg.buf to send
 	bufpos = msg.buf + (sizeof(sendbuf) - headersize); // bufpos is now a position of msg.buf instead of indexing sendbuf
-#ifdef DEBUG
+#ifdef DEBUG_COMMS
 	printf("[+]Successfully sent first packet of size %d. bytes left: %d\n", sent, bytestosend);
 #endif
 	while(bytestosend > 0){
@@ -333,7 +333,7 @@ static int sendfile_msg(msg_t msg, conn_t conn){
 			perror("[-]Error in sending message");
 			return -1;
 		}
-#ifdef DEBUG
+#ifdef DEBUG_COMMS
 		printf("[+]Sent %i bytes of %li\n", sent, bytestosend);
 #endif
 		bzero(sendbuf, SENDSIZE);
@@ -341,14 +341,14 @@ static int sendfile_msg(msg_t msg, conn_t conn){
 		bytestosend -= sent;
 		bufferroom = SENDSIZE;
 	}
-#ifdef DEBUG
+#ifdef DEBUG_COMMS
 	printf("[+]Successfully sent entire message\n");
 #endif
 	return 0;
 }
 
 static int sendupdt_msg(msg_t msg, conn_t conn){
-#ifdef DEBUG
+#ifdef DEBUG_COMMS
 	printf("[*]Attempting to send update message of size %li + sizeof(int) + sizeof(size_t)(header)\n", msg.size, msg.type);
 #endif
 	long int bytestosend = msg.size;
@@ -375,7 +375,7 @@ static int sendupdt_msg(msg_t msg, conn_t conn){
 	bzero(sendbuf, sizeof(sendbuf));
 	bytestosend -= (sizeof(sendbuf) - headersize); // number of bytes left in msg.buf to send
 	bufpos = msg.buf + (sizeof(sendbuf) - headersize); // bufpos is now a position of msg.buf instead of indexing sendbuf
-#ifdef DEBUG
+#ifdef DEBUG_COMMS
 	printf("[+]Successfully sent first packet. bytes left: %d\n", bytestosend);
 #endif
 	while(bytestosend > 0){
@@ -390,7 +390,7 @@ static int sendupdt_msg(msg_t msg, conn_t conn){
 			perror("[-]Error in sending message");
 			return -1;
 		}
-#ifdef DEBUG
+#ifdef DEBUG_COMMS
 		printf("[+]Sent %i bytes of %i\n", sent, bytestosend);
 #endif
 		bzero(sendbuf, SENDSIZE);
@@ -398,7 +398,7 @@ static int sendupdt_msg(msg_t msg, conn_t conn){
 		bytestosend -= sent;
 		bufferroom = SENDSIZE;
 	}
-#ifdef DEBUG
+#ifdef DEBUG_COMMS
 	printf("[+]Successfully sent entire message\n");
 #endif
 	return 0;
@@ -491,11 +491,11 @@ static msg_t recvfile_msg(conn_t conn, msg_t ret, int bytesread, char* prb){
 		bzero(recvbuf, SENDSIZE);
 		bufpos += bytesread;
 		bytesleft -= bytesread;
-#ifdef DEBUG
+#ifdef DEBUG_COMMS
 		printf("[+]Successfully read and copied %i bytes, %i bytes left\n", bytesread, bytesleft);
 #endif
 	}
-#ifdef DEBUG
+#ifdef DEBUG_COMMS
 	printf("[+]Successfully read entire message\n");
 #endif
 	return ret;
@@ -539,11 +539,11 @@ static msg_t recvupdt_msg(conn_t conn, msg_t ret, int bytesread, char* prv){
 		bzero(recvbuf, SENDSIZE);
 		bufpos += bytesread;
 		bytesleft -= bytesread;
-#ifdef DEBUG
+#ifdef DEBUG_COMMS
 		printf("[+]Successfully read and copied %i bytes, %i bytes left\n", bytesread, bytesleft);
 #endif
 	}
-#ifdef DEBUG
+#ifdef DEBUG_COMMS
 	printf("[+]Successfully read entire message\n");
 #endif
 	return ret;
@@ -562,7 +562,7 @@ msg_t recv_msg(conn_t conn){
 	// parse type and size of msg_t from the first message
 	ret.type = ((int*)recvbuf)[0];
 	ret.size = ((size_t*)(recvbuf+sizeof(int)))[0];
-#ifdef DEBUG
+#ifdef DEBUG_COMMS_COMMS
 	printf("[+]Received message of type %d and size %lu\n", ret.type, ret.size);
 #endif
 
