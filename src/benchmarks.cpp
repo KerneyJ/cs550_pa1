@@ -62,8 +62,10 @@ void test_query(IPeer* peer, const int num_files, const int num_peers, const cha
         create_file_name(filename, vm_id, i, file_size);
         res = peer->search_for_file(filename);
 
-        if(res.addr == -1)
+        if(res.addr == -1) {
+            printf("Failed requesting file %s.\n", filename);
             failures++;
+        }
     }
 
     t2 = high_resolution_clock::now();
