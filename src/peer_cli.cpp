@@ -71,7 +71,6 @@ static void request_file() {
 	}
 		
 	printf("Downloaded file: %s\n", filename.c_str());
-	peer->register_file(filename);
 }
 
 void launch_cli() {
