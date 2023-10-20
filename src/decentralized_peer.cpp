@@ -21,8 +21,7 @@ DecentralizedPeer::DecentralizedPeer(unsigned char peer_id, std::string adjacenc
 
 	auto fp = std::bind(&DecentralizedPeer::message_handler, this, std::placeholders::_1, std::placeholders::_2);
 	
-	if(server.start(fp, false) < 0)
-		throw std::logic_error("Server could not bind.");
+	server.start(fp, false);
 }
 
 unsigned char DecentralizedPeer::get_id() {
