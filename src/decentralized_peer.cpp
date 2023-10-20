@@ -9,6 +9,7 @@
 #include <sstream>
 #include <algorithm>
 
+#include "comms.h"
 #include "peer.hpp"
 #include "messages.hpp"
 #include "constants.hpp"
@@ -99,7 +100,7 @@ int DecentralizedPeer::get_message_id() {
 
 void DecentralizedPeer::broadcast_query(conn_t sender, msg_t* message, msg_t* query_response) {
 	std::vector<std::thread> threads;
-	create_message(query_response, NULL_MSG);
+	create_message(query_response, DUP_REQUEST);
 
 	// broadcast to everyone except sender
 	for(auto neighbor : neighbors) {
@@ -220,13 +221,10 @@ void DecentralizedPeer::search_index(conn_t client, msg_t request) {
 #endif
         broadcast_query(client, &request, &response);
 
+#ifdef DEBUG
 		if(response.type == NULL_MSG) {
-#ifdef DEBUG
 			printf("Homies didn't have it...\n");
-#endif
-			create_message(&response, DUP_REQUEST);
 		}
-#ifdef DEBUG
 		printf("Forward the response\n");
 #endif
 		send_msg(response, client);
