@@ -334,7 +334,7 @@ static int sendfile_msg(msg_t msg, conn_t conn){
 			return -1;
 		}
 #ifdef DEBUG
-		printf("[+]Sent %i bytes of %i\n", sent, bytestosend);
+		printf("[+]Sent %i bytes of %li\n", sent, bytestosend);
 #endif
 		bzero(sendbuf, SENDSIZE);
 		bufpos += sent;

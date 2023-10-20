@@ -270,7 +270,7 @@ conn_t DecentralizedPeer::search_for_file(std::string filename) {
 	msg_t request, response;
 	conn_t peer;
 
-	printf("Searching for file...\n");
+	printf("Searching for file %s...\n", filename.c_str());
 
 	// The file is on this peer
 	if(file_set.find(filename) != file_set.end())
