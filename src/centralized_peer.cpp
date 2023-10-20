@@ -200,9 +200,9 @@ int CentralizedPeer::replicate_file(conn_t client, msg_t request) {
 		printf("Failed to replicate. :(\n");
 		return -1;
 	}
-
+#ifdef DEBUG
 	printf("request file worked!\n");
-
+#endif
 	return register_file(filename);
 }
 

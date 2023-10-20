@@ -10,7 +10,7 @@
 #If centralized, initiatialize centralized topology
 
 #Launch index server on peer 17
-container_name="my-container-17"
+container_name="vm17"
 lxc exec "$container_name" -- /bin/bash -l -c "/home/cc/cs550_pa1/bin/index_server"
 
 # Use the lxc info command to retrieve the container's IP address
@@ -22,7 +22,7 @@ echo "IP address of index server on $container_name is $index_ip"
 #Launch peer server on peers 1 through 16.
 num_containers=16
 for i in $(seq 1 $num_containers); do
-  container_name="my-container-$i"
+  container_name="vm$i"
 
   # Replace the following line with the command you want to run within each container
   lxc exec "$container_name" -- /bin/bash -l -c "/home/cc/cs550_pa1/bin/c_peer $index_ip"

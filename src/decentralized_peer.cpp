@@ -18,11 +18,6 @@ DecentralizedPeer::DecentralizedPeer(unsigned char peer_id, std::string adjacenc
 	this->init_neighbors(adjacency_config);
 	this->init_fileset();
 
-	for(auto neighbor : neighbors) {
-		unsigned char* ip = (unsigned char*) &neighbor.addr;
-		printf("neighbor at: %d.%d.%d.%d:%d\n", ip[0], ip[1], ip[2], ip[3], neighbor.port);
-	}
-
 	auto fp = std::bind(&DecentralizedPeer::message_handler, this, std::placeholders::_1, std::placeholders::_2);
 	server.start(fp, false);
 }
@@ -110,8 +105,9 @@ void DecentralizedPeer::broadcast_query(conn_t sender, msg_t* message, msg_t* qu
 
 		threads.emplace_back(std::thread([neighbor, message, &query_response] () {
 			unsigned char* ip = (unsigned char*) &neighbor.addr;
+#ifdef DEBUG
 			printf("Sending message to neighbor: %d.%d.%d.%d:%d\n", ip[0], ip[1], ip[2], ip[3], neighbor.port);
-
+#endif
 			msg_t response = send_and_recv(neighbor, *message);
 
 			// we don't lock bc only one response should ever backtrace
@@ -195,9 +191,9 @@ void DecentralizedPeer::search_index(conn_t client, msg_t request) {
 	std::string filename;
 
 	parse_message(&request, &msg_id, &filename);
-
+#ifdef DEBUG
 	printf("Received request for file: %s. (msg %d)\n", filename.c_str(), msg_id);
-
+#endif
 	{
 		// Check if we have already seen this message
 		std::unique_lock<std::mutex> lock(query_map_lock);
@@ -214,21 +210,27 @@ void DecentralizedPeer::search_index(conn_t client, msg_t request) {
 
 	// Check if we have the file. if not, broadcast this message
     if(file_set.find(filename) == file_set.end()) {
+#ifdef DEBUG
 		printf("File not here, broadcasting query to the homies...\n");
+#endif
         broadcast_query(client, &request, &response);
 
 		if(response.type == NULL_MSG) {
+#ifdef DEBUG
 			printf("Homies didn't have it...\n");
+#endif
 			create_message(&response, DUP_REQUEST);
 		}
-
+#ifdef DEBUG
 		printf("Forward the response\n");
+#endif
 		send_msg(response, client);
 		delete_msg(&response);
         return;
     }
-
+#ifdef DEBUG
 	printf("We have the file!\n");
+#endif
 
 	create_message(&response, msg_id, server.get_conn_info(), STATUS_OK);
     send_msg(response, client);
@@ -239,15 +241,15 @@ conn_t DecentralizedPeer::search_for_file(std::string filename) {
 	int msg_id;
 	msg_t request, response;
 	conn_t peer;
-
+#ifdef DEBUG
 	printf("Searching for file %s...\n", filename.c_str());
-
+#endif
 	// The file is on this peer
 	if(file_set.find(filename) != file_set.end())
 		return server.get_conn_info();
-
+#ifdef DEBUG
 	printf("File not found locally...\n");
-
+#endif
 	msg_id = get_message_id();
 	create_message(&request, msg_id, filename, SEARCH_INDEX);
 
@@ -255,21 +257,23 @@ conn_t DecentralizedPeer::search_for_file(std::string filename) {
 		std::unique_lock<std::mutex> lock(query_map_lock);
 		received_queries.insert({ msg_id, server.get_conn_info() });
 	}
-
+#ifdef DEBUG
 	printf("Broadcasting query...\n");
-
+#endif
 	broadcast_query(server.get_conn_info(), &request, &response);
 	delete_msg(&request);
 
 	if(response.type == STATUS_OK) {
+#ifdef DEBUG
 		printf("Got a valid response from the broadcast!\n");
+#endif
 		parse_message(&response, &msg_id,  &peer);
 		delete_msg(&response);
 		return peer;
 	}
-
+#ifdef DEBUG
 	printf("Nobody had the file. :(\n");
-
+#endif
 	delete_msg(&response);
 	return { -1, -1, -1 };
 }
