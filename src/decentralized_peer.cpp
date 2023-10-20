@@ -201,7 +201,9 @@ void DecentralizedPeer::search_index(conn_t client, msg_t request) {
 		// Check if we have already seen this message
 		std::unique_lock<std::mutex> lock(query_map_lock);
 		if(received_queries.find(msg_id) != received_queries.end()) {
+#ifdef DEBUG
 			printf("Duplicate request (msg %d)\n", msg_id);
+#endif
 			create_message(&response, DUP_REQUEST);
 			send_msg(response, client);
 			delete_msg(&response);
