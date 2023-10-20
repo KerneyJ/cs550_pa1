@@ -195,5 +195,8 @@ int main(int argc, char** argv) {
 	int benchmark_id = atoi(argv[3]);
 	run_benchmark(peer, benchmark_id);
 
+    sleep(6000);
+    printf("Exiting!\n");
+
 	return 0;
 }
