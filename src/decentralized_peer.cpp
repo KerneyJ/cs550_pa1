@@ -9,7 +9,6 @@
 #include <sstream>
 #include <algorithm>
 
-#include "comms.h"
 #include "peer.hpp"
 #include "messages.hpp"
 #include "constants.hpp"
