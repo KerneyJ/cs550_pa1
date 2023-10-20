@@ -66,7 +66,7 @@ void create_message(msg_t* msg, std::string str, msg_type type) {
 
 void create_message(msg_t* msg, int id, conn_t conn, msg_type type) {
  	int buffer[3] = {id, conn.addr, conn.port};
-	createupdt_msg(msg, (char*) buffer, IP_INFO_SIZE, type);
+	createupdt_msg(msg, (char*) buffer, IP_INFO_SIZE + sizeof(int), type);
 }
 
 void create_message(msg_t* msg, int id, std::string str, msg_type type) {
