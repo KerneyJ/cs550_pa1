@@ -17,7 +17,7 @@ On each VM:
 4. Launch a decentralized peer. The launch script takes two arguments: peer #, topology config file. Two topology files are provided.
    Use the same topology file for every peer.
    Here's an example of how you'd launch peer 3 with the grid-topology.txt file from the project's top-level directory:
-   `decentralized_peer 3 ./config/grid-topology.txt`
+   `./decentralized_peer 3 ./config/grid-topology.txt`
 5. After running the above command, a CLI will have launched and you can choose to search for and request files using the CLI.
 
 
