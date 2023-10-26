@@ -5,6 +5,34 @@
 * Jamison Kerney jkerney@hawk.iit.edu
 * Harrison Mohr jmohr1@hawk.iit.edu
 
+## README for PA2 (Decentralized version)
+
+We assume that you are testing this in an environment where you've arleady initialized 17 Linux VM's. 
+
+To try out the system with a decentralized topology,  
+On each VM:
+0. Create a file `peer-ips.csv` on the host machine. For each VM you are using in your experiment copy its IP address and add append a new line to
+   the csv file: `vm #, IP`. E.g. if your appending the line for vm 2 and it has IP 10.0.0.64, then add the line `2, 10.0.0.64`. After you've completed the peer-ips.csv file, copy this file to the top-level directory of the project on each vm, using scp or whatever method you prefer.
+1. git clone https://github.com/KerneyJ/cs550_pa1 
+2. run `make` in the project top-level directory (same directory where the Makefile is) to compile the code.
+3. Create some non-empty data files in the `./data/` directory in one or more of the VM's so that you'll have something to search for and transfer.
+4. Launch a decentralized peer. The launch script takes two arguments: peer #, topology config file. Two topology files are provided.
+   Use the same topology file for every peer.
+   Here's an example of how you'd launch peer 3 with the grid-topology.txt file from the project's top-level directory:
+   `./bin/d_peer 3 ./config/grid-topology.txt`
+5. After running the above command, a CLI will have launched and you can choose to search for and request files using the CLI.
+
+
+
+
+
+
+
+
+
+
+
+## README for PA1 (Centralized version)
 ### Description
 P2P file service implemented as a class project for IIT CS550, Advanced OS (Distributed Systems).
 

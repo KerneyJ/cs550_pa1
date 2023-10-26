@@ -10,7 +10,7 @@ lxc config set temp-container limits.cpu 1
 lxc config set temp-container limits.memory 6GB
 lxc config device add temp-container root disk pool=temp-pool source=temp-vol path=/
 
-lxc exec temp-container -- apt autoremove -yy
+lxc exec temp-container -- apt autoremove -yy 
 lxc exec temp-container -- apt update -yy
 lxc exec temp-container -- apt install make gcc g++ -yy
 lxc exec temp-container -- git clone https://github.com/KerneyJ/cs550_pa1.git /home/root/cs550_pa1
