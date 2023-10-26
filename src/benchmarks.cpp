@@ -40,7 +40,7 @@ void run_benchmark(IPeer* peer, int benchmark_id) {
             break;
         case 4:
             if(peer->get_id() <= 9)
-                return test_transfer(peer, 10, 16, "10M");
+                return test_transfer(peer, 10, 16, "100M");
             sleep(100000000);
             break;
         default:

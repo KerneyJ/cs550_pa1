@@ -188,6 +188,7 @@ int main(int argc, char** argv) {
 	}
 
 	#ifdef CENTRALIZED_PEER
+		printf("Registering files with index server...\n");
 		peer->register_directory(SHARED_FILE_DIR);
 	#endif
 	
