@@ -15,6 +15,11 @@ trap kill_peers SIGINT
 
 log_file="/home/root/test_output_log.txt"
 
+echo "clearing previously duplicated files off peers"
+for i in {1..16}; do
+	sudo lxc exec vm$i -- bash -c "find /home/root/cs550_pa1/data -type f | grep -v \"vm$i\" | xargs rm"
+done
+
 #If arg 1 == 1, initiatialize centralized topology
 if [ "$1" = "1" ]; then
   echo "initializing centralized topology"
